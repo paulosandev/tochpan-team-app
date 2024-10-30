@@ -1,6 +1,7 @@
 // src/modules/Inventory/Inventory.js
 import React, { useState } from 'react';
 import InventoryItem from '../components/Inventory/InventoryItem';
+import { motion, AnimatePresence } from 'framer-motion';
 
 function Inventory() {
     const [showExportModal, setShowExportModal] = useState(false);
@@ -43,21 +44,21 @@ function Inventory() {
 
     // Filtra y ordena los productos de inventario según los filtros activos
     const filteredItems = inventoryItems
-        .filter((item) => {
-            const matchesCategory = categoryFilter === "Todas las categorías" || item.category === categoryFilter;
-            const matchesStatus = statusFilter === "Todos" || item.status === statusFilter;
-            const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-            return matchesCategory && matchesStatus && matchesSearch;
-        })
-        .sort((a, b) => {
-            // Ordena según el parámetro de ordenación seleccionado
-            const fieldA = a[sortParameter];
-            const fieldB = b[sortParameter];
+    .filter((item) => {
+        const matchesCategory = categoryFilter === "Todas las categorías" || item.category === categoryFilter;
+        const matchesStatus = statusFilter === "Todos" || item.status === statusFilter;
+        const matchesSearch = item[sortParameter].toLowerCase().includes(searchTerm.toLowerCase()); // Cambiado a buscar por sortParameter
+        return matchesCategory && matchesStatus && matchesSearch;
+    })
+    .sort((a, b) => {
+        // Ordena según el parámetro de ordenación seleccionado
+        const fieldA = a[sortParameter];
+        const fieldB = b[sortParameter];
 
-            if (fieldA < fieldB) return isAscending ? -1 : 1;
-            if (fieldA > fieldB) return isAscending ? 1 : -1;
-            return 0;
-        });
+        if (fieldA < fieldB) return isAscending ? -1 : 1;
+        if (fieldA > fieldB) return isAscending ? 1 : -1;
+        return 0;
+    });
 
     // Cambia el orden de A-Z a Z-A y viceversa
     const toggleSortOrder = () => setIsAscending(!isAscending);
@@ -75,16 +76,26 @@ function Inventory() {
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl font-semibold">Inventario</h1>
                 <div className="flex space-x-2">
-                    <button onClick={toggleExportModal} className="bg-blue-500 text-white p-2 rounded-full shadow-md hover:bg-blue-600">
+                    <motion.button 
+                        whileHover={{ scale: 1.1 }} 
+                        whileTap={{ scale: 0.9 }}
+                        onClick={toggleExportModal} 
+                        className="bg-blue-500 text-white p-2 rounded-full shadow-md hover:bg-blue-600"
+                    >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v16h16V4H4zm8 4v8m0 0l-3-3m3 3l3-3" />
                         </svg>
-                    </button>
-                    <button onClick={toggleCreateArticleModal} className="bg-green-500 text-white p-2 rounded-full shadow-md hover:bg-green-600">
+                    </motion.button>
+                    <motion.button 
+                        whileHover={{ scale: 1.1 }} 
+                        whileTap={{ scale: 0.9 }}
+                        onClick={toggleCreateArticleModal} 
+                        className="bg-green-500 text-white p-2 rounded-full shadow-md hover:bg-green-600"
+                    >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                         </svg>
-                    </button>
+                    </motion.button>
                 </div>
             </div>
 
@@ -99,7 +110,7 @@ function Inventory() {
                 />
             </div>
 
-            {/* Filtros combinados en una sola línea */}
+            {/* Filtros */}
             <div className="flex items-center space-x-2 mb-4" id="filters-section">
                 <select
                     className="border-gray-300 text-gray-500 rounded-md shadow-sm py-1 px-2 w-1/2"
@@ -124,62 +135,96 @@ function Inventory() {
                     <option value="category">Categoría</option>
                     <option value="supplier">Proveedor</option>
                 </select>
-                <button onClick={toggleSortOrder} className="bg-gray-300 text-gray-700 text-sm px-3 py-1 rounded-md shadow-md hover:bg-gray-400 w-1/6">
+                <motion.button 
+                    onClick={toggleSortOrder} 
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="bg-gray-300 text-gray-700 text-sm px-3 py-1 rounded-md shadow-md hover:bg-gray-400 w-1/6"
+                >
                     {isAscending ? "A-Z" : "Z-A"}
-                </button>
-            </div>
-
-            {/* Filtros por estado de inventario */}
-            <div id="inventory-filters" className="flex items-center space-x-2 mb-4 overflow-x-auto">
-                <button onClick={() => setStatusFilter("Todos")} className={`text-sm px-3 py-1 rounded-md ${statusFilter === "Todos" ? "bg-gray-200 text-gray-700" : "bg-gray-100"}`}>Todos</button>
-                <button onClick={() => setStatusFilter("Suficiente")} className={`text-sm px-3 py-1 rounded-md ${statusFilter === "Suficiente" ? "bg-green-100 text-green-700" : "bg-gray-100"}`}>Suficiente</button>
-                <button onClick={() => setStatusFilter("Escaso")} className={`text-sm px-3 py-1 rounded-md ${statusFilter === "Escaso" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100"}`}>Escaso</button>
-                <button onClick={() => setStatusFilter("Agotado")} className={`text-sm px-3 py-1 rounded-md ${statusFilter === "Agotado" ? "bg-red-100 text-red-700" : "bg-gray-100"}`}>Agotado</button>
-                <button onClick={() => setStatusFilter("Pedido")} className={`text-sm px-3 py-1 rounded-md ${statusFilter === "Pedido" ? "bg-blue-100 text-blue-700" : "bg-gray-100"}`}>Pedido</button>
+                </motion.button>
             </div>
 
             {/* Lista de productos en inventario */}
-            <ul className="space-y-4">
-                {filteredItems.map((item, index) => (
-                    <InventoryItem
-                        key={index}
-                        name={item.name}
-                        category={item.category}
-                        stock={item.stock}
-                        status={item.status}
-                        supplier={item.supplier}
-                        imageUrl={item.imageUrl}
-                    />
-                ))}
-            </ul>
+            <AnimatePresence>
+                <ul className="space-y-4">
+                    {filteredItems.map((item, index) => (
+                        <motion.div
+                            key={index}
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            <InventoryItem
+                                name={item.name}
+                                category={item.category}
+                                stock={item.stock}
+                                status={item.status}
+                                supplier={item.supplier}
+                                imageUrl={item.imageUrl}
+                            />
+                        </motion.div>
+                    ))}
+                </ul>
+            </AnimatePresence>
 
-            {/* Modal de exportación */}
-            {showExportModal && (
-                <div onClick={toggleExportModal} className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                    <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-lg shadow-lg p-6 w-80">
-                        <h2 className="text-xl font-semibold mb-4">Exportar Inventario</h2>
-                        <div className="flex flex-col space-y-2">
-                            <button className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Exportar PDF</button>
-                            <button className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Exportar Excel</button>
-                        </div>
-                        <button onClick={toggleExportModal} className="mt-4 text-blue-500 hover:underline">Cerrar</button>
-                    </div>
-                </div>
-            )}
+            {/* Modales */}
+            <AnimatePresence>
+                {showExportModal && (
+                    <motion.div 
+                        onClick={toggleExportModal} 
+                        className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <motion.div
+                            onClick={(e) => e.stopPropagation()} 
+                            className="bg-white rounded-lg shadow-lg p-6 w-80"
+                            initial={{ scale: 0.8 }}
+                            animate={{ scale: 1 }}
+                            exit={{ scale: 0.8 }}
+                        >
+                            <h2 className="text-xl font-semibold mb-4">Exportar Inventario</h2>
+                            <div className="flex flex-col space-y-2">
+                                <button className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Exportar PDF</button>
+                                <button className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Exportar Excel</button>
+                            </div>
+                            <button onClick={toggleExportModal} className="mt-4 text-blue-500 hover:underline">Cerrar</button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-            {/* Modal de creación de artículo */}
-            {showCreateArticleModal && (
-                <div onClick={toggleCreateArticleModal} className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                    <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-lg shadow-lg p-6 w-80">
-                        <h2 className="text-xl font-semibold mb-4">Crear Artículo</h2>
-                        <div className="flex flex-col space-y-2">
-                            <button className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Agregar Artículo</button>
-                            <button className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Agregar Artículos Masivamente</button>
-                        </div>
-                        <button onClick={toggleCreateArticleModal} className="mt-4 text-blue-500 hover:underline">Cerrar</button>
-                    </div>
-                </div>
-            )}
+            <AnimatePresence>
+                {showCreateArticleModal && (
+                    <motion.div 
+                        onClick={toggleCreateArticleModal} 
+                        className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <motion.div
+                            onClick={(e) => e.stopPropagation()} 
+                            className="bg-white rounded-lg shadow-lg p-6 w-80"
+                            initial={{ scale: 0.8 }}
+                            animate={{ scale: 1 }}
+                            exit={{ scale: 0.8 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            <h2 className="text-xl font-semibold mb-4">Crear Artículo</h2>
+                            <div className="flex flex-col space-y-2">
+                                <button className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Agregar Artículo</button>
+                                <button className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300">Agregar Artículos Masivamente</button>
+                            </div>
+                            <button onClick={toggleCreateArticleModal} className="mt-4 text-blue-500 hover:underline">Cerrar</button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

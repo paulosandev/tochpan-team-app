@@ -1,4 +1,3 @@
-// src/modules/Inventory/Inventory.js
 import React, { useState, useEffect } from 'react';
 import InventoryItem from '../components/Inventory/InventoryItem';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,7 +8,6 @@ function Inventory() {
     const [showScrollTopButton, setShowScrollTopButton] = useState(false);
     useEffect(() => {
         const handleScroll = () => {
-            // Mostrar botón si el desplazamiento es mayor a 200 píxeles
             setShowScrollTopButton(window.scrollY > 200);
         };
 
@@ -28,8 +26,7 @@ function Inventory() {
     const [isAscending, setIsAscending] = useState(true);
     const [sortParameter, setSortParameter] = useState("name");
 
-    // PAra crear articulo
-
+    // Para crear artículo
     const [showExportModal, setShowExportModal] = useState(false);
     const [showCreateArticleModal, setShowCreateArticleModal] = useState(false);
 
@@ -41,29 +38,21 @@ function Inventory() {
     const toggleExportModal = () => setShowExportModal(!showExportModal);
     const toggleCreateArticleModal = () => setShowCreateArticleModal(!showCreateArticleModal);
 
+
+    const calculateStatus = (stock, minStock, isOrdered) => {
+        if (isOrdered) return "Pedido";
+        if (stock >= minStock) return "Suficiente";
+        if (stock >= minStock * 0.15) return "Escaso";
+        return "Agotado";
+    };
+
     const [inventoryItems, setInventoryItems] = useState([
-        { name: "Jarabe de caramelo", category: "Bebidas", stock: "1 botella", status: "Agotado", supplier: "Monin", imageUrl: "https://images.unsplash.com/photo-1578985545062-69928b1d9587" },
-        { name: "Leche", category: "Lácteos", stock: "5 litros", status: "Suficiente", supplier: "Alpura", imageUrl: "https://images.unsplash.com/photo-1582719478181-a6ddc9d90a3e" },
-        { name: "Leche light", category: "Lácteos", stock: "5 litros", status: "Suficiente", supplier: "Alpura", imageUrl: "https://images.unsplash.com/photo-1582719478181-a6ddc9d90a3e" },
-        { name: "Azúcar", category: "Ingredientes", stock: "2 kg", status: "Escaso", supplier: "Zulka", imageUrl: "https://images.unsplash.com/photo-1600207222674-3404a25dbe0b" },
-        { name: "Café", category: "Bebidas", stock: "10 paquetes", status: "Suficiente", supplier: "Nescafé", imageUrl: "https://images.unsplash.com/photo-1567306226416-28f0efdc88ce" },
-        { name: "Mantequilla", category: "Lácteos", stock: "3 barras", status: "Escaso", supplier: "Lala", imageUrl: "https://images.unsplash.com/photo-1599785209707-e93314c940f7" },
-        { name: "Harina", category: "Ingredientes", stock: "4 kg", status: "Suficiente", supplier: "Selecta", imageUrl: "https://images.unsplash.com/photo-1575908521818-3160a6b4c7d7" },
-        { name: "Vasos", category: "Utensilios", stock: "50 unidades", status: "Pedido", supplier: "Dixie", imageUrl: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445" },
-        { name: "Jabón líquido", category: "Limpieza", stock: "2 litros", status: "Agotado", supplier: "Dawn", imageUrl: "https://images.unsplash.com/photo-1584448432239-515afe1b333f" },
-        { name: "Queso", category: "Lácteos", stock: "3 kg", status: "Suficiente", supplier: "Philadelphia", imageUrl: "https://images.unsplash.com/photo-1559561853-46a1e0a4b8a2" },
-        { name: "Servilletas", category: "Utensilios", stock: "200 unidades", status: "Suficiente", supplier: "Kleenex", imageUrl: "https://images.unsplash.com/photo-1611078488333-9a6ff85f6589" },
-        { name: "Chocolate en polvo", category: "Ingredientes", stock: "1 kg", status: "Escaso", supplier: "Hershey's", imageUrl: "https://images.unsplash.com/photo-1505253218-4040b0815e1c" },
-        { name: "Cloro", category: "Limpieza", stock: "1 galón", status: "Pedido", supplier: "Cloralex", imageUrl: "https://images.unsplash.com/photo-1580224337729-e857e56f75d9" },
-        { name: "Jugo de naranja", category: "Bebidas", stock: "12 botellas", status: "Suficiente", supplier: "Del Valle", imageUrl: "https://images.unsplash.com/photo-1572561457554-5a6b85f08cd4" },
-        { name: "Cereal", category: "Ingredientes", stock: "5 cajas", status: "Escaso", supplier: "Kellogg's", imageUrl: "https://images.unsplash.com/photo-1592894687778-793f7a2e25c3" },
-        { name: "Tazas", category: "Utensilios", stock: "15 unidades", status: "Suficiente", supplier: "Contigo", imageUrl: "https://images.unsplash.com/photo-1520965310192-c6a67b924d4d" },
-        { name: "Detergente en polvo", category: "Limpieza", stock: "2 kg", status: "Agotado", supplier: "Ariel", imageUrl: "https://images.unsplash.com/photo-1575571245040-c76e5a137e7c" },
-        { name: "Yogur", category: "Lácteos", stock: "10 unidades", status: "Escaso", supplier: "Danone", imageUrl: "https://images.unsplash.com/photo-1572449043414-3b1b3e5c5a2a" },
-        { name: "Galletas", category: "Ingredientes", stock: "30 paquetes", status: "Suficiente", supplier: "Gamesa", imageUrl: "https://images.unsplash.com/photo-1585238342025-84c36fd68f7b" },
-        { name: "Agua mineral", category: "Bebidas", stock: "24 botellas", status: "Pedido", supplier: "Perrier", imageUrl: "https://images.unsplash.com/photo-1550572308-3b2a9a1d78c4" },
-        { name: "Espátulas", category: "Utensilios", stock: "8 unidades", status: "Suficiente", supplier: "OXO", imageUrl: "https://images.unsplash.com/photo-1599126533406-e7b0d55cbb6b" },
-    ]);
+        { name: "Jarabe de caramelo", category: "Bebidas", stock: 1, minStock: 2, isOrdered: false, supplier: "Monin", imageUrl: "https://images.unsplash.com/photo-1578985545062-69928b1d9587" },
+        { name: "Leche", category: "Lácteos", stock: 5, minStock: 3, isOrdered: false, supplier: "Alpura", imageUrl: "https://images.unsplash.com/photo-1582719478181-a6ddc9d90a3e" },
+    ].map(item => ({
+        ...item,
+        status: calculateStatus(item.stock, item.minStock, item.isOrdered)
+    })));
 
 
 

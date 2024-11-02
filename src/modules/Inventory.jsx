@@ -1,10 +1,27 @@
 // src/modules/Inventory/Inventory.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import InventoryItem from '../components/Inventory/InventoryItem';
 import { motion, AnimatePresence } from 'framer-motion';
 import CreateArticleModal from '../components/Inventory/CreateArticleModal';
 
 function Inventory() {
+    // Estado para el botón de "Subir"
+    const [showScrollTopButton, setShowScrollTopButton] = useState(false);
+    useEffect(() => {
+        const handleScroll = () => {
+            // Mostrar botón si el desplazamiento es mayor a 200 píxeles
+            setShowScrollTopButton(window.scrollY > 200);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     const [categoryFilter, setCategoryFilter] = useState("Todas las categorías");
     const [statusFilter, setStatusFilter] = useState("Todos");
     const [searchTerm, setSearchTerm] = useState("");
@@ -74,6 +91,18 @@ function Inventory() {
 
     return (
         <div className="max-w-md mx-auto p-4 pb-24">
+            {/* Botón de "Subir" */}
+            {showScrollTopButton && (
+                <motion.button
+                    onClick={scrollToTop}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="fixed bottom-8 right-8 bg-blue-500 text-white p-3 rounded-full shadow-lg hover:bg-blue-600"
+                >
+                    ⬆️
+                </motion.button>
+            )}
+
             {/* Encabezado de navegación */}
             <nav className="text-sm text-gray-500 mb-4">
                 <a href="#" className="hover:underline">Home</a>

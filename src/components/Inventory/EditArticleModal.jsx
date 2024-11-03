@@ -14,6 +14,9 @@ function EditArticleModal({ show, onClose, onUpdateItem, item }) {
     const [activeTab, setActiveTab] = useState("url");
     const [showConfirmModal, setShowConfirmModal] = useState(false);
 
+    // Almacenar los valores iniciales en una referencia
+    const initialValuesRef = React.useRef({});
+
     useEffect(() => {
         if (item) {
             setItemName(item.name);
@@ -24,6 +27,19 @@ function EditArticleModal({ show, onClose, onUpdateItem, item }) {
             setItemSupplier(item.supplier);
             setItemImageUrl(item.imageUrl);
             setIsOrdered(item.isOrdered);
+
+            // Almacenar los valores iniciales
+            initialValuesRef.current = {
+                itemName: item.name,
+                itemCategory: item.category,
+                itemStock: item.stock.toString(),
+                itemMinStock: item.minStock.toString(),
+                itemUnit: item.unit,
+                itemSupplier: item.supplier,
+                itemImageUrl: item.imageUrl,
+                isOrdered: item.isOrdered,
+                imageFile: null, // Inicialmente no hay archivo seleccionado
+            };
         }
     }, [item]);
 
@@ -78,7 +94,24 @@ function EditArticleModal({ show, onClose, onUpdateItem, item }) {
     };
 
     const handleClose = () => {
-        setShowConfirmModal(true);
+        // Comparar los valores actuales con los iniciales
+        const initialValues = initialValuesRef.current;
+        const hasChanges =
+            itemName !== initialValues.itemName ||
+            itemCategory !== initialValues.itemCategory ||
+            itemStock !== initialValues.itemStock ||
+            itemMinStock !== initialValues.itemMinStock ||
+            itemUnit !== initialValues.itemUnit ||
+            itemSupplier !== initialValues.itemSupplier ||
+            itemImageUrl !== initialValues.itemImageUrl ||
+            isOrdered !== initialValues.isOrdered ||
+            imageFile !== initialValues.imageFile;
+
+        if (hasChanges) {
+            setShowConfirmModal(true);
+        } else {
+            onClose();
+        }
     };
 
     const handleImageFileChange = (e) => {

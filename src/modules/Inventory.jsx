@@ -4,6 +4,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import CreateArticleModal from '../components/Inventory/CreateArticleModal';
 
 function Inventory() {
+    // Función para actualizar un artículo
+    const handleUpdateItem = (updatedItem) => {
+        const updatedStatus = calculateStatus(updatedItem.stock, updatedItem.minStock, updatedItem.isOrdered);
+        const itemWithUpdatedStatus = { ...updatedItem, status: updatedStatus };
+
+        setInventoryItems(inventoryItems.map(item =>
+            item.id === itemWithUpdatedStatus.id ? itemWithUpdatedStatus : item
+        ));
+    };
+
     const [showScrollTopButton, setShowScrollTopButton] = useState(false);
     useEffect(() => {
         const handleScroll = () => {
@@ -46,6 +56,7 @@ function Inventory() {
 
     const [inventoryItems, setInventoryItems] = useState([
         {
+            id: 1, // Asigna un id único manualmente
             name: "Jarabe de caramelo",
             category: "Bebidas",
             stock: 1,
@@ -56,6 +67,7 @@ function Inventory() {
             imageUrl: "https://images.unsplash.com/photo-1578985545062-69928b1d9587"
         },
         {
+            id: 2, // Asigna otro id único
             name: "Leche",
             category: "Lácteos",
             stock: 5,
@@ -245,14 +257,8 @@ function Inventory() {
                             transition={{ duration: 0.2 }}
                         >
                             <InventoryItem
-                                name={item.name}
-                                category={item.category}
-                                stock={item.stock}
-                                minStock={item.minStock}
-                                unit={item.unit}
-                                status={item.status}
-                                supplier={item.supplier}
-                                imageUrl={item.imageUrl}
+                                item={item}
+                                onUpdateItem={handleUpdateItem}
                             />
                         </motion.div>
                     ))}

@@ -1,18 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
-function CreateArticleModal({ show, onClose, onAddItem }) {
-    const [newItemName, setNewItemName] = useState("");
-    const [newItemCategory, setNewItemCategory] = useState("");
-    const [newItemStock, setNewItemStock] = useState("");
-    const [newItemMinStock, setNewItemMinStock] = useState("");
-    const [newItemUnit, setNewItemUnit] = useState("pieza"); // Nuevo estado para la unidad de medida
-    const [newItemSupplier, setNewItemSupplier] = useState("");
-    const [newItemImageUrl, setNewItemImageUrl] = useState("");
+function EditArticleModal({ show, onClose, onUpdateItem, item }) {
+    const [itemName, setItemName] = useState("");
+    const [itemCategory, setItemCategory] = useState("");
+    const [itemStock, setItemStock] = useState("");
+    const [itemMinStock, setItemMinStock] = useState("");
+    const [itemUnit, setItemUnit] = useState("pieza");
+    const [itemSupplier, setItemSupplier] = useState("");
+    const [itemImageUrl, setItemImageUrl] = useState("");
     const [isOrdered, setIsOrdered] = useState(false);
     const [imageFile, setImageFile] = useState(null);
     const [activeTab, setActiveTab] = useState("url");
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+    useEffect(() => {
+        if (item) {
+            setItemName(item.name);
+            setItemCategory(item.category);
+            setItemStock(item.stock.toString());
+            setItemMinStock(item.minStock.toString());
+            setItemUnit(item.unit);
+            setItemSupplier(item.supplier);
+            setItemImageUrl(item.imageUrl);
+            setIsOrdered(item.isOrdered);
+        }
+    }, [item]);
 
     const calculateStatus = (stock, minStock, isOrdered) => {
         if (isOrdered) return "Pedido";
@@ -37,8 +50,8 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const stockValue = parseFractionalQuantity(newItemStock);
-        const minStockValue = parseFractionalQuantity(newItemMinStock);
+        const stockValue = parseFractionalQuantity(itemStock);
+        const minStockValue = parseFractionalQuantity(itemMinStock);
 
         if (isNaN(stockValue) || isNaN(minStockValue)) {
             alert("Por favor, ingrese cantidades válidas para el stock.");
@@ -47,58 +60,31 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
 
         const status = calculateStatus(stockValue, minStockValue, isOrdered);
 
-        const newItem = {
-            id: Date.now() + Math.floor(Math.random() * 1000), // Genera un id aleatorio
-            name: newItemName,
-            category: newItemCategory,
+        const updatedItem = {
+            ...item,
+            name: itemName,
+            category: itemCategory,
             stock: stockValue,
             minStock: minStockValue,
-            unit: newItemUnit,
-            supplier: newItemSupplier,
-            imageUrl: imageFile ? URL.createObjectURL(imageFile) : newItemImageUrl,
+            unit: itemUnit,
+            supplier: itemSupplier,
+            imageUrl: imageFile ? URL.createObjectURL(imageFile) : itemImageUrl,
             status,
-            isOrdered
+            isOrdered,
         };
 
-        onAddItem(newItem);
-        resetForm();
+        onUpdateItem(updatedItem);
         onClose();
     };
 
-    const resetForm = () => {
-        setNewItemName("");
-        setNewItemCategory("");
-        setNewItemStock("");
-        setNewItemMinStock("");
-        setNewItemUnit("pieza");
-        setNewItemSupplier("");
-        setNewItemImageUrl("");
-        setImageFile(null);
-        setIsOrdered(false);
-        setActiveTab("url");
-    };
-
     const handleClose = () => {
-        if (
-            newItemName ||
-            newItemCategory ||
-            newItemStock ||
-            newItemMinStock ||
-            newItemUnit !== "pieza" ||
-            newItemSupplier ||
-            newItemImageUrl ||
-            imageFile
-        ) {
-            setShowConfirmModal(true);
-        } else {
-            onClose();
-        }
+        setShowConfirmModal(true);
     };
 
     const handleImageFileChange = (e) => {
         const file = e.target.files[0];
         setImageFile(file);
-        setNewItemImageUrl("");
+        setItemImageUrl("");
     };
 
     if (!show) return null;
@@ -127,32 +113,35 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
                         className="absolute top-4 right-4 text-gray-600 hover:text-gray-900"
                         aria-label="Cerrar modal"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round"
+                                d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
 
-                    <h2 className="text-xl font-semibold mb-4 text-center">Crear Artículo</h2>
+                    <h2 className="text-xl font-semibold mb-4 text-center">Editar Artículo</h2>
                     <form onSubmit={handleSubmit}>
                         <div className="flex flex-col space-y-2">
                             <input
                                 type="text"
                                 placeholder="Nombre"
-                                value={newItemName}
-                                onChange={(e) => setNewItemName(e.target.value)}
+                                value={itemName}
+                                onChange={(e) => setItemName(e.target.value)}
                                 className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                             />
                             <input
                                 type="text"
                                 placeholder="Categoría"
-                                value={newItemCategory}
-                                onChange={(e) => setNewItemCategory(e.target.value)}
+                                value={itemCategory}
+                                onChange={(e) => setItemCategory(e.target.value)}
                                 className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                             />
                             {/* Campo para unidad de medida */}
                             <select
-                                value={newItemUnit}
-                                onChange={(e) => setNewItemUnit(e.target.value)}
+                                value={itemUnit}
+                                onChange={(e) => setItemUnit(e.target.value)}
                                 className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                             >
                                 <option value="pieza">Pieza (pz o pzs)</option>
@@ -172,23 +161,23 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
                             {/* Campos para stock y stock mínimo */}
                             <input
                                 type="text"
-                                placeholder={`Stock Actual (${newItemUnit})`}
-                                value={newItemStock}
-                                onChange={(e) => setNewItemStock(e.target.value)}
+                                placeholder={`Stock Actual (${itemUnit})`}
+                                value={itemStock}
+                                onChange={(e) => setItemStock(e.target.value)}
                                 className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                             />
                             <input
                                 type="text"
-                                placeholder={`Stock Mínimo (${newItemUnit})`}
-                                value={newItemMinStock}
-                                onChange={(e) => setNewItemMinStock(e.target.value)}
+                                placeholder={`Stock Mínimo (${itemUnit})`}
+                                value={itemMinStock}
+                                onChange={(e) => setItemMinStock(e.target.value)}
                                 className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                             />
                             <input
                                 type="text"
                                 placeholder="Proveedor"
-                                value={newItemSupplier}
-                                onChange={(e) => setNewItemSupplier(e.target.value)}
+                                value={itemSupplier}
+                                onChange={(e) => setItemSupplier(e.target.value)}
                                 className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                             />
                             <label className="flex items-center">
@@ -205,14 +194,16 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
                                 <button
                                     type="button"
                                     onClick={() => setActiveTab("url")}
-                                    className={`px-4 py-1 rounded-md ${activeTab === "url" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
+                                    className={`px-4 py-1 rounded-md ${activeTab === "url" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"
+                                        }`}
                                 >
                                     URL de Imagen
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setActiveTab("upload")}
-                                    className={`px-4 py-1 rounded-md ${activeTab === "upload" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
+                                    className={`px-4 py-1 rounded-md ${activeTab === "upload" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"
+                                        }`}
                                 >
                                     Subir Imagen
                                 </button>
@@ -222,9 +213,9 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
                                 <input
                                     type="text"
                                     placeholder="URL de Imagen"
-                                    value={newItemImageUrl}
+                                    value={itemImageUrl}
                                     onChange={(e) => {
-                                        setNewItemImageUrl(e.target.value);
+                                        setItemImageUrl(e.target.value);
                                         setImageFile(null);
                                     }}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
@@ -241,9 +232,9 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
 
                             <button
                                 type="submit"
-                                className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+                                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
                             >
-                                Agregar
+                                Guardar Cambios
                             </button>
                         </div>
                     </form>
@@ -268,7 +259,7 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
                         transition={{ duration: 0.3 }}
                     >
                         <h2 className="text-xl font-semibold mb-4">¿Estás seguro de salir?</h2>
-                        <p className="text-gray-600 mb-4">Se perderán los datos actuales del formulario si cierras esta ventana.</p>
+                        <p className="text-gray-600 mb-4">Se perderán los cambios si cierras esta ventana.</p>
                         <div className="flex justify-end space-x-4">
                             <button
                                 onClick={() => setShowConfirmModal(false)}
@@ -279,7 +270,6 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
                             <button
                                 onClick={() => {
                                     setShowConfirmModal(false);
-                                    resetForm();
                                     onClose();
                                 }}
                                 className="px-4 py-2 rounded-md bg-red-500 text-white hover:bg-red-600"
@@ -294,4 +284,4 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
     );
 }
 
-export default CreateArticleModal;
+export default EditArticleModal;

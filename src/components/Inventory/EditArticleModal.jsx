@@ -14,7 +14,6 @@ function EditArticleModal({ show, onClose, onUpdateItem, item }) {
     const [activeTab, setActiveTab] = useState("url");
     const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-    // Almacenar los valores iniciales en una referencia
     const initialValuesRef = React.useRef({});
 
     useEffect(() => {
@@ -28,7 +27,6 @@ function EditArticleModal({ show, onClose, onUpdateItem, item }) {
             setItemImageUrl(item.imageUrl);
             setIsOrdered(item.isOrdered);
 
-            // Almacenar los valores iniciales
             initialValuesRef.current = {
                 itemName: item.name,
                 itemCategory: item.category,
@@ -38,7 +36,7 @@ function EditArticleModal({ show, onClose, onUpdateItem, item }) {
                 itemSupplier: item.supplier,
                 itemImageUrl: item.imageUrl,
                 isOrdered: item.isOrdered,
-                imageFile: null, // Inicialmente no hay archivo seleccionado
+                imageFile: null,
             };
         }
     }, [item]);
@@ -50,7 +48,6 @@ function EditArticleModal({ show, onClose, onUpdateItem, item }) {
         return "Agotado";
     };
 
-    // Función para convertir cantidades fraccionarias a números
     const parseFractionalQuantity = (input) => {
         if (typeof input === 'number') return input;
         const fractionRegex = /^(\d+)?\s*(\d+\/\d+)?$/;
@@ -59,7 +56,7 @@ function EditArticleModal({ show, onClose, onUpdateItem, item }) {
 
         const wholeNumber = match[1] ? parseInt(match[1], 10) : 0;
         const fraction = match[2]
-            ? eval(match[2]) // Evalúa la fracción, por ejemplo, "1/2" => 0.5
+            ? eval(match[2])
             : 0;
         return wholeNumber + fraction;
     };
@@ -94,7 +91,6 @@ function EditArticleModal({ show, onClose, onUpdateItem, item }) {
     };
 
     const handleClose = () => {
-        // Comparar los valores actuales con los iniciales
         const initialValues = initialValuesRef.current;
         const hasChanges =
             itemName !== initialValues.itemName ||
@@ -134,13 +130,12 @@ function EditArticleModal({ show, onClose, onUpdateItem, item }) {
             >
                 <motion.div
                     onClick={(e) => e.stopPropagation()}
-                    className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative"
+                    className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative max-h-screen overflow-y-auto"
                     initial={{ scale: 0.8 }}
                     animate={{ scale: 1 }}
                     exit={{ scale: 0.8 }}
                     transition={{ duration: 0.3 }}
                 >
-                    {/* Botón de cierre en la esquina superior derecha */}
                     <button
                         onClick={handleClose}
                         className="absolute top-4 right-4 text-gray-600 hover:text-gray-900"
@@ -157,6 +152,7 @@ function EditArticleModal({ show, onClose, onUpdateItem, item }) {
                     <h2 className="text-xl font-semibold mb-4 text-center">Editar Artículo</h2>
                     <form onSubmit={handleSubmit}>
                         <div className="flex flex-col space-y-2">
+                            <label>Nombre del Artículo</label>
                             <input
                                 type="text"
                                 placeholder="Nombre"
@@ -164,6 +160,7 @@ function EditArticleModal({ show, onClose, onUpdateItem, item }) {
                                 onChange={(e) => setItemName(e.target.value)}
                                 className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                             />
+                            <label>Categoría</label>
                             <input
                                 type="text"
                                 placeholder="Categoría"
@@ -171,7 +168,7 @@ function EditArticleModal({ show, onClose, onUpdateItem, item }) {
                                 onChange={(e) => setItemCategory(e.target.value)}
                                 className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                             />
-                            {/* Campo para unidad de medida */}
+                            <label>Unidad de Medida</label>
                             <select
                                 value={itemUnit}
                                 onChange={(e) => setItemUnit(e.target.value)}
@@ -191,7 +188,7 @@ function EditArticleModal({ show, onClose, onUpdateItem, item }) {
                                 <option value="mililitro">Mililitro</option>
                                 <option value="rollo">Rollo</option>
                             </select>
-                            {/* Campos para stock y stock mínimo */}
+                            <label>Stock Actual</label>
                             <input
                                 type="text"
                                 placeholder={`Stock Actual (${itemUnit})`}
@@ -199,6 +196,7 @@ function EditArticleModal({ show, onClose, onUpdateItem, item }) {
                                 onChange={(e) => setItemStock(e.target.value)}
                                 className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                             />
+                            <label>Stock Mínimo</label>
                             <input
                                 type="text"
                                 placeholder={`Stock Mínimo (${itemUnit})`}
@@ -206,6 +204,7 @@ function EditArticleModal({ show, onClose, onUpdateItem, item }) {
                                 onChange={(e) => setItemMinStock(e.target.value)}
                                 className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                             />
+                            <label>Proveedor</label>
                             <input
                                 type="text"
                                 placeholder="Proveedor"
@@ -243,24 +242,30 @@ function EditArticleModal({ show, onClose, onUpdateItem, item }) {
                             </div>
 
                             {activeTab === "url" && (
-                                <input
-                                    type="text"
-                                    placeholder="URL de Imagen"
-                                    value={itemImageUrl}
-                                    onChange={(e) => {
-                                        setItemImageUrl(e.target.value);
-                                        setImageFile(null);
-                                    }}
-                                    className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
-                                />
+                                <>
+                                    <label>URL de Imagen</label>
+                                    <input
+                                        type="text"
+                                        placeholder="URL de Imagen"
+                                        value={itemImageUrl}
+                                        onChange={(e) => {
+                                            setItemImageUrl(e.target.value);
+                                            setImageFile(null);
+                                        }}
+                                        className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                                    />
+                                </>
                             )}
                             {activeTab === "upload" && (
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleImageFileChange}
-                                    className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
-                                />
+                                <>
+                                    <label>Subir Imagen</label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageFileChange}
+                                        className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                                    />
+                                </>
                             )}
 
                             <button
@@ -273,46 +278,6 @@ function EditArticleModal({ show, onClose, onUpdateItem, item }) {
                     </form>
                 </motion.div>
             </motion.div>
-
-            {showConfirmModal && (
-                <motion.div
-                    onClick={() => setShowConfirmModal(false)}
-                    className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <motion.div
-                        onClick={(e) => e.stopPropagation()}
-                        className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md"
-                        initial={{ scale: 0.8 }}
-                        animate={{ scale: 1 }}
-                        exit={{ scale: 0.8 }}
-                        transition={{ duration: 0.3 }}
-                    >
-                        <h2 className="text-xl font-semibold mb-4">¿Estás seguro de salir?</h2>
-                        <p className="text-gray-600 mb-4">Se perderán los cambios si cierras esta ventana.</p>
-                        <div className="flex justify-end space-x-4">
-                            <button
-                                onClick={() => setShowConfirmModal(false)}
-                                className="px-4 py-2 rounded-md bg-gray-300 text-gray-800 hover:bg-gray-400"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setShowConfirmModal(false);
-                                    onClose();
-                                }}
-                                className="px-4 py-2 rounded-md bg-red-500 text-white hover:bg-red-600"
-                            >
-                                Salir
-                            </button>
-                        </div>
-                    </motion.div>
-                </motion.div>
-            )}
         </>
     );
 }

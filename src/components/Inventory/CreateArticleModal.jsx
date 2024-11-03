@@ -6,7 +6,7 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
     const [newItemCategory, setNewItemCategory] = useState("");
     const [newItemStock, setNewItemStock] = useState("");
     const [newItemMinStock, setNewItemMinStock] = useState("");
-    const [newItemUnit, setNewItemUnit] = useState("pieza"); // Nuevo estado para la unidad de medida
+    const [newItemUnit, setNewItemUnit] = useState("pieza");
     const [newItemSupplier, setNewItemSupplier] = useState("");
     const [newItemImageUrl, setNewItemImageUrl] = useState("");
     const [isOrdered, setIsOrdered] = useState(false);
@@ -21,7 +21,6 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
         return "Agotado";
     };
 
-    // Función para convertir cantidades fraccionarias a números
     const parseFractionalQuantity = (input) => {
         if (typeof input === 'number') return input;
         const fractionRegex = /^(\d+)?\s*(\d+\/\d+)?$/;
@@ -30,7 +29,7 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
 
         const wholeNumber = match[1] ? parseInt(match[1], 10) : 0;
         const fraction = match[2]
-            ? eval(match[2]) // Evalúa la fracción, por ejemplo, "1/2" => 0.5
+            ? eval(match[2])
             : 0;
         return wholeNumber + fraction;
     };
@@ -48,7 +47,7 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
         const status = calculateStatus(stockValue, minStockValue, isOrdered);
 
         const newItem = {
-            id: Date.now() + Math.floor(Math.random() * 1000), // Genera un id aleatorio
+            id: Date.now() + Math.floor(Math.random() * 1000),
             name: newItemName,
             category: newItemCategory,
             stock: stockValue,
@@ -121,7 +120,6 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
                     exit={{ scale: 0.8 }}
                     transition={{ duration: 0.3 }}
                 >
-                    {/* Botón de cierre en la esquina superior derecha */}
                     <button
                         onClick={handleClose}
                         className="absolute top-4 right-4 text-gray-600 hover:text-gray-900"
@@ -135,6 +133,7 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
                     <h2 className="text-xl font-semibold mb-4 text-center">Crear Artículo</h2>
                     <form onSubmit={handleSubmit}>
                         <div className="flex flex-col space-y-2">
+                            <label>Nombre del Artículo</label>
                             <input
                                 type="text"
                                 placeholder="Nombre"
@@ -142,6 +141,7 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
                                 onChange={(e) => setNewItemName(e.target.value)}
                                 className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                             />
+                            <label>Categoría</label>
                             <input
                                 type="text"
                                 placeholder="Categoría"
@@ -149,7 +149,7 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
                                 onChange={(e) => setNewItemCategory(e.target.value)}
                                 className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                             />
-                            {/* Campo para unidad de medida */}
+                            <label>Unidad de Medida</label>
                             <select
                                 value={newItemUnit}
                                 onChange={(e) => setNewItemUnit(e.target.value)}
@@ -169,7 +169,7 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
                                 <option value="mililitro">Mililitro</option>
                                 <option value="rollo">Rollo</option>
                             </select>
-                            {/* Campos para stock y stock mínimo */}
+                            <label>Stock Actual</label>
                             <input
                                 type="text"
                                 placeholder={`Stock Actual (${newItemUnit})`}
@@ -177,6 +177,7 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
                                 onChange={(e) => setNewItemStock(e.target.value)}
                                 className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                             />
+                            <label>Stock Mínimo</label>
                             <input
                                 type="text"
                                 placeholder={`Stock Mínimo (${newItemUnit})`}
@@ -184,6 +185,7 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
                                 onChange={(e) => setNewItemMinStock(e.target.value)}
                                 className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                             />
+                            <label>Proveedor</label>
                             <input
                                 type="text"
                                 placeholder="Proveedor"
@@ -219,24 +221,30 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
                             </div>
 
                             {activeTab === "url" && (
-                                <input
-                                    type="text"
-                                    placeholder="URL de Imagen"
-                                    value={newItemImageUrl}
-                                    onChange={(e) => {
-                                        setNewItemImageUrl(e.target.value);
-                                        setImageFile(null);
-                                    }}
-                                    className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
-                                />
+                                <>
+                                    <label>URL de Imagen</label>
+                                    <input
+                                        type="text"
+                                        placeholder="URL de Imagen"
+                                        value={newItemImageUrl}
+                                        onChange={(e) => {
+                                            setNewItemImageUrl(e.target.value);
+                                            setImageFile(null);
+                                        }}
+                                        className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                                    />
+                                </>
                             )}
                             {activeTab === "upload" && (
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleImageFileChange}
-                                    className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
-                                />
+                                <>
+                                    <label>Subir Imagen</label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageFileChange}
+                                        className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                                    />
+                                </>
                             )}
 
                             <button
@@ -249,47 +257,6 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
                     </form>
                 </motion.div>
             </motion.div>
-
-            {showConfirmModal && (
-                <motion.div
-                    onClick={() => setShowConfirmModal(false)}
-                    className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <motion.div
-                        onClick={(e) => e.stopPropagation()}
-                        className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md"
-                        initial={{ scale: 0.8 }}
-                        animate={{ scale: 1 }}
-                        exit={{ scale: 0.8 }}
-                        transition={{ duration: 0.3 }}
-                    >
-                        <h2 className="text-xl font-semibold mb-4">¿Estás seguro de salir?</h2>
-                        <p className="text-gray-600 mb-4">Se perderán los datos actuales del formulario si cierras esta ventana.</p>
-                        <div className="flex justify-end space-x-4">
-                            <button
-                                onClick={() => setShowConfirmModal(false)}
-                                className="px-4 py-2 rounded-md bg-gray-300 text-gray-800 hover:bg-gray-400"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setShowConfirmModal(false);
-                                    resetForm();
-                                    onClose();
-                                }}
-                                className="px-4 py-2 rounded-md bg-red-500 text-white hover:bg-red-600"
-                            >
-                                Salir
-                            </button>
-                        </div>
-                    </motion.div>
-                </motion.div>
-            )}
         </>
     );
 }

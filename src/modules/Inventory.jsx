@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import CreateArticleModal from '../components/Inventory/CreateArticleModal';
 
 function Inventory() {
-    // Estado para el botón de "Subir"
     const [showScrollTopButton, setShowScrollTopButton] = useState(false);
     useEffect(() => {
         const handleScroll = () => {
@@ -38,7 +37,6 @@ function Inventory() {
     const toggleExportModal = () => setShowExportModal(!showExportModal);
     const toggleCreateArticleModal = () => setShowCreateArticleModal(!showCreateArticleModal);
 
-
     const calculateStatus = (stock, minStock, isOrdered) => {
         if (isOrdered) return "Pedido";
         if (stock >= minStock) return "Suficiente";
@@ -47,26 +45,40 @@ function Inventory() {
     };
 
     const [inventoryItems, setInventoryItems] = useState([
-        { name: "Jarabe de caramelo", category: "Bebidas", stock: 1, minStock: 2, isOrdered: false, supplier: "Monin", imageUrl: "https://images.unsplash.com/photo-1578985545062-69928b1d9587" },
-        { name: "Leche", category: "Lácteos", stock: 5, minStock: 3, isOrdered: false, supplier: "Alpura", imageUrl: "https://images.unsplash.com/photo-1582719478181-a6ddc9d90a3e" },
+        {
+            name: "Jarabe de caramelo",
+            category: "Bebidas",
+            stock: 1,
+            minStock: 2,
+            unit: "litro",
+            isOrdered: false,
+            supplier: "Monin",
+            imageUrl: "https://images.unsplash.com/photo-1578985545062-69928b1d9587"
+        },
+        {
+            name: "Leche",
+            category: "Lácteos",
+            stock: 5,
+            minStock: 3,
+            unit: "litro",
+            isOrdered: false,
+            supplier: "Alpura",
+            imageUrl: "https://images.unsplash.com/photo-1582719478181-a6ddc9d90a3e"
+        },
     ].map(item => ({
         ...item,
         status: calculateStatus(item.stock, item.minStock, item.isOrdered)
     })));
-
-
-
 
     // Filtra y ordena los productos de inventario según los filtros activos
     const filteredItems = inventoryItems
         .filter((item) => {
             const matchesCategory = categoryFilter === "Todas las categorías" || item.category === categoryFilter;
             const matchesStatus = statusFilter === "Todos" || item.status === statusFilter;
-            const matchesSearch = item[sortParameter].toLowerCase().includes(searchTerm.toLowerCase()); // Cambiado a buscar por sortParameter
+            const matchesSearch = item[sortParameter].toString().toLowerCase().includes(searchTerm.toLowerCase());
             return matchesCategory && matchesStatus && matchesSearch;
         })
         .sort((a, b) => {
-            // Ordena según el parámetro de ordenación seleccionado
             const fieldA = a[sortParameter];
             const fieldB = b[sortParameter];
 
@@ -79,7 +91,7 @@ function Inventory() {
     const toggleSortOrder = () => setIsAscending(!isAscending);
 
     return (
-        <div className="max-w-md mx-auto p-4 pb-24">
+        <div className="px-4 pb-24">
             {/* Botón de "Subir" */}
             {showScrollTopButton && (
                 <motion.button
@@ -109,7 +121,7 @@ function Inventory() {
                         onClick={toggleExportModal}
                         className="bg-blue-500 text-white p-2 rounded-full shadow-md hover:bg-blue-600"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v16h16V4H4zm8 4v8m0 0l-3-3m3 3l3-3" />
                         </svg>
                     </motion.button>
@@ -119,88 +131,102 @@ function Inventory() {
                         onClick={toggleCreateArticleModal}
                         className="bg-green-500 text-white p-2 rounded-full shadow-md hover:bg-green-600"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                         </svg>
                     </motion.button>
                 </div>
             </div>
 
-            {/* Campo de búsqueda */}
-            <div className="mb-4">
-                <input
-                    type="text"
-                    placeholder="Buscar ..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
-                />
-            </div>
+            {/* Campo de búsqueda y filtros */}
+            <div className="flex flex-col lg:flex-row lg:items-center lg:space-x-4 mb-4">
+                {/* Campo de búsqueda */}
+                <div className="mb-4 lg:mb-0 lg:flex-1">
+                    <input
+                        type="text"
+                        placeholder="Buscar ..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                    />
+                </div>
 
-            {/* Filtros */}
-            <div className="flex items-center space-x-2 mb-4" id="filters-section">
-                <select
-                    className="border-gray-300 text-gray-500 rounded-md shadow-sm py-1 px-2 w-1/2"
-                    value={categoryFilter}
-                    onChange={(e) => setCategoryFilter(e.target.value)}
-                >
-                    <option>Todas las categorías</option>
-                    <option>Bebidas</option>
-                    <option>Lácteos</option>
-                    <option>Ingredientes</option>
-                    <option>Utensilios</option>
-                    <option>Limpieza</option>
-                </select>
+                {/* Filtros */}
+                <div className="flex flex-col sm:flex-row sm:space-x-2 lg:flex-1">
+                    <select
+                        className="border-gray-300 text-gray-500 rounded-md shadow-sm py-1 px-2 mb-2 sm:mb-0 w-full sm:w-1/2"
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                    >
+                        <option>Todas las categorías</option>
+                        <option>Bebidas</option>
+                        <option>Lácteos</option>
+                        <option>Ingredientes</option>
+                        <option>Utensilios</option>
+                        <option>Limpieza</option>
+                    </select>
 
-                {/* Select para seleccionar el criterio de ordenación */}
-                <select
-                    className="border-gray-300 text-gray-500 rounded-md shadow-sm py-1 px-2 w-1/3"
-                    value={sortParameter}
-                    onChange={(e) => setSortParameter(e.target.value)}
-                >
-                    <option value="name">Artículo</option>
-                    <option value="category">Categoría</option>
-                    <option value="supplier">Proveedor</option>
-                </select>
-                <motion.button
-                    onClick={toggleSortOrder}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="bg-gray-300 text-gray-700 text-sm px-3 py-1 rounded-md shadow-md hover:bg-gray-400 w-1/6"
-                >
-                    {isAscending ? "A-Z" : "Z-A"}
-                </motion.button>
+                    {/* Select para seleccionar el criterio de ordenación */}
+                    <div className="flex items-center space-x-2 w-full sm:w-1/2">
+                        <select
+                            className="border-gray-300 text-gray-500 rounded-md shadow-sm py-1 px-2 w-full"
+                            value={sortParameter}
+                            onChange={(e) => setSortParameter(e.target.value)}
+                        >
+                            <option value="name">Artículo</option>
+                            <option value="category">Categoría</option>
+                            <option value="supplier">Proveedor</option>
+                        </select>
+                        <motion.button
+                            onClick={toggleSortOrder}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            className="bg-gray-300 text-gray-700 text-sm px-3 py-1 rounded-md shadow-md hover:bg-gray-400 whitespace-nowrap"
+                        >
+                            {isAscending ? "A-Z" : "Z-A"}
+                        </motion.button>
+                    </div>
+
+                </div>
             </div>
 
             {/* Filtros por estado de inventario */}
-            <div id="inventory-filters" className="flex items-center space-x-2 mb-4 overflow-x-auto">
+            <div
+                id="inventory-filters"
+                className="flex gap-2 mb-4 overflow-x-auto"
+            >
                 <button
                     onClick={() => setStatusFilter("Todos")}
-                    className={`text-sm px-3 py-1 rounded-md bg-gray-200 text-gray-700 ${statusFilter === "Todos" ? "border-2 border-gray-500" : ""}`}
+                    className={`flex-shrink-0 text-sm px-3 py-1 rounded-md bg-gray-200 text-gray-700 ${statusFilter === "Todos" ? "border-2 border-gray-500" : ""
+                        }`}
                 >
                     Todos
                 </button>
                 <button
                     onClick={() => setStatusFilter("Suficiente")}
-                    className={`text-sm px-3 py-1 rounded-md bg-green-100 text-green-700 ${statusFilter === "Suficiente" ? "border-2 border-green-600" : ""}`}
+                    className={`flex-shrink-0 text-sm px-3 py-1 rounded-md bg-green-100 text-green-700 ${statusFilter === "Suficiente" ? "border-2 border-green-600" : ""
+                        }`}
                 >
                     Suficiente
                 </button>
                 <button
                     onClick={() => setStatusFilter("Escaso")}
-                    className={`text-sm px-3 py-1 rounded-md bg-yellow-100 text-yellow-700 ${statusFilter === "Escaso" ? "border-2 border-yellow-600" : ""}`}
+                    className={`flex-shrink-0 text-sm px-3 py-1 rounded-md bg-yellow-100 text-yellow-700 ${statusFilter === "Escaso" ? "border-2 border-yellow-600" : ""
+                        }`}
                 >
                     Escaso
                 </button>
                 <button
                     onClick={() => setStatusFilter("Agotado")}
-                    className={`text-sm px-3 py-1 rounded-md bg-red-100 text-red-700 ${statusFilter === "Agotado" ? "border-2 border-red-600" : ""}`}
+                    className={`flex-shrink-0 text-sm px-3 py-1 rounded-md bg-red-100 text-red-700 ${statusFilter === "Agotado" ? "border-2 border-red-600" : ""
+                        }`}
                 >
                     Agotado
                 </button>
                 <button
                     onClick={() => setStatusFilter("Pedido")}
-                    className={`text-sm px-3 py-1 rounded-md bg-blue-100 text-blue-700 ${statusFilter === "Pedido" ? "border-2 border-blue-600" : ""}`}
+                    className={`flex-shrink-0 text-sm px-3 py-1 rounded-md bg-blue-100 text-blue-700 ${statusFilter === "Pedido" ? "border-2 border-blue-600" : ""
+                        }`}
                 >
                     Pedido
                 </button>
@@ -222,6 +248,8 @@ function Inventory() {
                                 name={item.name}
                                 category={item.category}
                                 stock={item.stock}
+                                minStock={item.minStock}
+                                unit={item.unit}
                                 status={item.status}
                                 supplier={item.supplier}
                                 imageUrl={item.imageUrl}
@@ -243,7 +271,7 @@ function Inventory() {
                     >
                         <motion.div
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-white rounded-lg shadow-lg p-6 w-80"
+                            className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md"
                             initial={{ scale: 0.8 }}
                             animate={{ scale: 1 }}
                             exit={{ scale: 0.8 }}

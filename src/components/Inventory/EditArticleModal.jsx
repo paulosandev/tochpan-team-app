@@ -130,7 +130,7 @@ function EditArticleModal({ show, onClose, onUpdateItem, item }) {
             >
                 <motion.div
                     onClick={(e) => e.stopPropagation()}
-                    className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative max-h-screen overflow-y-auto"
+                    className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg h-4/5 overflow-y-auto relative"
                     initial={{ scale: 0.8 }}
                     animate={{ scale: 1 }}
                     exit={{ scale: 0.8 }}

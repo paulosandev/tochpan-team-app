@@ -3,6 +3,8 @@ import InventoryItem from '../components/Inventory/InventoryItem';
 import { motion, AnimatePresence } from 'framer-motion';
 import CreateArticleModal from '../components/Inventory/CreateArticleModal';
 
+
+
 function Inventory() {
     // Función para actualizar un artículo
     const handleUpdateItem = (updatedItem) => {
@@ -54,33 +56,31 @@ function Inventory() {
         return "Agotado";
     };
 
-    const [inventoryItems, setInventoryItems] = useState([
-        {
-            id: 1, // Asigna un id único manualmente
-            name: "Jarabe de caramelo",
-            category: "Bebidas",
-            stock: 1,
-            minStock: 2,
-            unit: "litro",
-            isOrdered: false,
-            supplier: "Monin",
-            imageUrl: "https://images.unsplash.com/photo-1578985545062-69928b1d9587"
-        },
-        {
-            id: 2, // Asigna otro id único
-            name: "Leche",
-            category: "Lácteos",
-            stock: 5,
-            minStock: 3,
-            unit: "litro",
-            isOrdered: false,
-            supplier: "Alpura",
-            imageUrl: "https://images.unsplash.com/photo-1582719478181-a6ddc9d90a3e"
-        },
-    ].map(item => ({
-        ...item,
-        status: calculateStatus(item.stock, item.minStock, item.isOrdered)
-    })));
+    const [inventoryItems, setInventoryItems] = useState([]);
+
+    const [categories, setCategories] = useState([]);
+
+    useEffect(() => {
+        // Obtener los datos del inventario
+        fetch('/data/InventoryData.json')
+            .then(response => response.json())
+            .then(data => {
+                const itemsWithStatus = data.map(item => ({
+                    ...item,
+                    status: calculateStatus(item.stock, item.minStock, item.isOrdered)
+                }));
+                setInventoryItems(itemsWithStatus);
+            })
+            .catch(error => console.error('Error al cargar los datos del inventario:', error));
+
+        // Obtener las categorías desde el archivo JSON
+        fetch('/data/CategoriesData.json')
+            .then(response => response.json())
+            .then(data => {
+                setCategories(data);
+            })
+            .catch(error => console.error('Error al cargar las categorías:', error));
+    }, []);
 
     // Filtra y ordena los productos de inventario según los filtros activos
     const filteredItems = inventoryItems
@@ -171,11 +171,9 @@ function Inventory() {
                         onChange={(e) => setCategoryFilter(e.target.value)}
                     >
                         <option>Todas las categorías</option>
-                        <option>Bebidas</option>
-                        <option>Lácteos</option>
-                        <option>Ingredientes</option>
-                        <option>Utensilios</option>
-                        <option>Limpieza</option>
+                        {categories.map((category, index) => (
+                            <option key={index} value={category}>{category}</option>
+                        ))}
                     </select>
 
                     {/* Select para seleccionar el criterio de ordenación */}
@@ -198,7 +196,6 @@ function Inventory() {
                             {isAscending ? "A-Z" : "Z-A"}
                         </motion.button>
                     </div>
-
                 </div>
             </div>
 
@@ -259,6 +256,7 @@ function Inventory() {
                             <InventoryItem
                                 item={item}
                                 onUpdateItem={handleUpdateItem}
+                                categories={categories}
                             />
                         </motion.div>
                     ))}
@@ -299,6 +297,7 @@ function Inventory() {
                     show={showCreateArticleModal}
                     onClose={toggleCreateArticleModal}
                     onAddItem={handleAddItem}
+                    categories={categories}
                 />
             </AnimatePresence>
         </div>

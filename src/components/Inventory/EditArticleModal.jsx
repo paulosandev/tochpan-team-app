@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
-function EditArticleModal({ show, onClose, onUpdateItem, item }) {
+function EditArticleModal({  show, onClose, onUpdateItem, item, categories }) {
     const [itemName, setItemName] = useState("");
     const [itemCategory, setItemCategory] = useState("");
     const [itemStock, setItemStock] = useState("");
@@ -120,7 +120,8 @@ function EditArticleModal({ show, onClose, onUpdateItem, item }) {
 
     return (
         <>
-            <motion.div
+            {show &&(
+                <motion.div
                 onClick={handleClose}
                 className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
                 initial={{ opacity: 0 }}
@@ -161,13 +162,16 @@ function EditArticleModal({ show, onClose, onUpdateItem, item }) {
                                 className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                             />
                             <label>Categoría</label>
-                            <input
-                                type="text"
-                                placeholder="Categoría"
-                                value={itemCategory}
-                                onChange={(e) => setItemCategory(e.target.value)}
-                                className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
-                            />
+                                <select
+                                    value={itemCategory}
+                                    onChange={(e) => setItemCategory(e.target.value)}
+                                    className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                                >
+                                    <option value="">Seleccione una categoría</option>
+                                    {categories.map((category, index) => (
+                                        <option key={index} value={category}>{category}</option>
+                                    ))}
+                                </select>
                             <label>Unidad de Medida</label>
                             <select
                                 value={itemUnit}
@@ -278,6 +282,7 @@ function EditArticleModal({ show, onClose, onUpdateItem, item }) {
                     </form>
                 </motion.div>
             </motion.div>
+            )}
         </>
     );
 }

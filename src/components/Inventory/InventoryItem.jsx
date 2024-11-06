@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import EditArticleModal from './EditArticleModal';
 
-function InventoryItem({ item, onUpdateItem }) {
+function InventoryItem({ item, onUpdateItem, categories }) {
     const [showEditModal, setShowEditModal] = useState(false);
 
     const statusClasses = {
@@ -55,6 +55,7 @@ function InventoryItem({ item, onUpdateItem }) {
                     onClose={() => setShowEditModal(false)}
                     onUpdateItem={onUpdateItem}
                     item={item}
+                    categories={categories}
                 />
             )}
         </>

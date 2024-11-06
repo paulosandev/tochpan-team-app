@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
-function CreateArticleModal({ show, onClose, onAddItem }) {
+function CreateArticleModal({ show, onClose, onAddItem, categories }) {
     const [newItemName, setNewItemName] = useState("");
     const [newItemCategory, setNewItemCategory] = useState("");
     const [newItemStock, setNewItemStock] = useState("");
@@ -104,7 +104,8 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
 
     return (
         <>
-            <motion.div
+            {show &&(
+                <motion.div
                 onClick={handleClose}
                 className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
                 initial={{ opacity: 0 }}
@@ -142,13 +143,16 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
                                 className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                             />
                             <label>Categoría</label>
-                            <input
-                                type="text"
-                                placeholder="Categoría"
-                                value={newItemCategory}
-                                onChange={(e) => setNewItemCategory(e.target.value)}
-                                className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
-                            />
+                                <select
+                                    value={newItemCategory}
+                                    onChange={(e) => setNewItemCategory(e.target.value)}
+                                    className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                                >
+                                    <option value="">Seleccione una categoría</option>
+                                    {categories.map((category, index) => (
+                                        <option key={index} value={category}>{category}</option>
+                                    ))}
+                                </select>
                             <label>Unidad de Medida</label>
                             <select
                                 value={newItemUnit}
@@ -257,6 +261,7 @@ function CreateArticleModal({ show, onClose, onAddItem }) {
                     </form>
                 </motion.div>
             </motion.div>
+            )}
         </>
     );
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-function EditArticleModal({ show, onClose, onUpdateItem, item, categories }) {
+function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppliers }) {
     const [itemName, setItemName] = useState("");
     const [itemCategory, setItemCategory] = useState("");
     const [itemStock, setItemStock] = useState("");
@@ -13,6 +13,9 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories }) {
     const [imageFile, setImageFile] = useState(null);
     const [activeTab, setActiveTab] = useState("url");
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+    const [newSupplierName, setNewSupplierName] = useState("");
+    const [supplierList, setSupplierList] = useState(suppliers);
 
     const initialValuesRef = React.useRef({});
 
@@ -38,8 +41,10 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories }) {
                 isOrdered: item.isOrdered,
                 imageFile: null,
             };
+
+            setSupplierList([...new Set([...suppliers, item.supplier])]); // Aseguramos que el proveedor esté en la lista
         }
-    }, [item]);
+    }, [item, suppliers]);
 
     const calculateStatus = (stock, minStock, isOrdered) => {
         if (isOrdered) return "Pedido";
@@ -114,6 +119,14 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories }) {
         const file = e.target.files[0];
         setImageFile(file);
         setItemImageUrl("");
+    };
+
+    const handleAddSupplier = () => {
+        if (newSupplierName && !supplierList.includes(newSupplierName)) {
+            setSupplierList([...supplierList, newSupplierName]);
+            setItemSupplier(newSupplierName);
+            setNewSupplierName("");
+        }
     };
 
     if (!show) return null;
@@ -208,14 +221,36 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories }) {
                                     onChange={(e) => setItemMinStock(e.target.value)}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 />
+
+                                {/* Selección de Proveedor */}
                                 <label>Proveedor</label>
-                                <input
-                                    type="text"
-                                    placeholder="Proveedor"
+                                <select
                                     value={itemSupplier}
                                     onChange={(e) => setItemSupplier(e.target.value)}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
-                                />
+                                >
+                                    <option value="">Seleccione un proveedor</option>
+                                    {supplierList.map((supplier, index) => (
+                                        <option key={index} value={supplier}>{supplier}</option>
+                                    ))}
+                                </select>
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Nuevo Proveedor"
+                                        value={newSupplierName}
+                                        onChange={(e) => setNewSupplierName(e.target.value)}
+                                        className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleAddSupplier}
+                                        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                                    >
+                                        Agregar Proveedor
+                                    </button>
+                                </div>
+
                                 <label className="flex items-center">
                                     <input
                                         type="checkbox"
@@ -297,14 +332,14 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories }) {
                     >
                         <motion.div
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm text-center"
+                            className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm"
                             initial={{ scale: 0.8 }}
                             animate={{ scale: 1 }}
                             exit={{ scale: 0.8 }}
                             transition={{ duration: 0.3 }}
                         >
                             <h2 className="text-xl font-semibold mb-4">¿Desea cerrar sin guardar los cambios?</h2>
-                            <div className="flex space-x-4 justify-center">
+                            <div className="flex space-x-4">
                                 <button
                                     onClick={() => {
                                         setShowConfirmModal(false);

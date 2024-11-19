@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-function CreateArticleModal({ show, onClose, onAddItem, categories }) {
+function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers }) {
     const [newItemName, setNewItemName] = useState("");
     const [newItemCategory, setNewItemCategory] = useState("");
     const [newItemStock, setNewItemStock] = useState("");
@@ -13,6 +13,9 @@ function CreateArticleModal({ show, onClose, onAddItem, categories }) {
     const [imageFile, setImageFile] = useState(null);
     const [activeTab, setActiveTab] = useState("url");
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+    const [newSupplierName, setNewSupplierName] = useState("");
+    const [supplierList, setSupplierList] = useState(suppliers);
 
     const calculateStatus = (stock, minStock, isOrdered) => {
         if (isOrdered) return "Pedido";
@@ -100,6 +103,14 @@ function CreateArticleModal({ show, onClose, onAddItem, categories }) {
         setNewItemImageUrl("");
     };
 
+    const handleAddSupplier = () => {
+        if (newSupplierName && !supplierList.includes(newSupplierName)) {
+            setSupplierList([...supplierList, newSupplierName]);
+            setNewItemSupplier(newSupplierName);
+            setNewSupplierName("");
+        }
+    };
+
     if (!show) return null;
 
     return (
@@ -126,8 +137,10 @@ function CreateArticleModal({ show, onClose, onAddItem, categories }) {
                             className="absolute top-4 right-4 text-gray-600 hover:text-gray-900"
                             aria-label="Cerrar modal"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                <path strokeLinecap="round" strokeLinejoin="round"
+                                    d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
 
@@ -189,14 +202,36 @@ function CreateArticleModal({ show, onClose, onAddItem, categories }) {
                                     onChange={(e) => setNewItemMinStock(e.target.value)}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 />
+
+                                {/* Selección de Proveedor */}
                                 <label>Proveedor</label>
-                                <input
-                                    type="text"
-                                    placeholder="Proveedor"
+                                <select
                                     value={newItemSupplier}
                                     onChange={(e) => setNewItemSupplier(e.target.value)}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
-                                />
+                                >
+                                    <option value="">Seleccione un proveedor</option>
+                                    {supplierList.map((supplier, index) => (
+                                        <option key={index} value={supplier}>{supplier}</option>
+                                    ))}
+                                </select>
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Nuevo Proveedor"
+                                        value={newSupplierName}
+                                        onChange={(e) => setNewSupplierName(e.target.value)}
+                                        className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleAddSupplier}
+                                        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                                    >
+                                        Agregar Proveedor
+                                    </button>
+                                </div>
+
                                 <label className="flex items-center">
                                     <input
                                         type="checkbox"

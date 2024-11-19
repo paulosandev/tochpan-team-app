@@ -57,6 +57,7 @@ function Inventory() {
     const [inventoryItems, setInventoryItems] = useState([]);
 
     const [categories, setCategories] = useState([]);
+    const [suppliers, setSuppliers] = useState([]);
 
     useEffect(() => {
         // Obtener los datos del inventario
@@ -78,6 +79,14 @@ function Inventory() {
                 setCategories(data);
             })
             .catch(error => console.error('Error al cargar las categorías:', error));
+
+        // Obtener los proveedores desde el archivo JSON
+        fetch('/data/SuppliersData.json')
+            .then(response => response.json())
+            .then(data => {
+                setSuppliers(data);
+            })
+            .catch(error => console.error('Error al cargar los proveedores:', error));
     }, []);
 
     // Filtra y ordena los productos de inventario según los filtros activos
@@ -131,8 +140,10 @@ function Inventory() {
                         onClick={toggleExportModal}
                         className="bg-blue-500 text-white p-2 rounded-full shadow-md hover:bg-blue-600"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v16h16V4H4zm8 4v8m0 0l-3-3m3 3l3-3" />
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round"
+                                d="M4 4v16h16V4H4zm8 4v8m0 0l-3-3m3 3l3-3" />
                         </svg>
                     </motion.button>
                     <motion.button
@@ -141,8 +152,10 @@ function Inventory() {
                         onClick={toggleCreateArticleModal}
                         className="bg-green-500 text-white p-2 rounded-full shadow-md hover:bg-green-600"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round"
+                                d="M12 4v16m8-8H4" />
                         </svg>
                     </motion.button>
                 </div>
@@ -239,7 +252,6 @@ function Inventory() {
                 </button>
             </div>
 
-
             {/* Lista de productos en inventario */}
             <AnimatePresence>
                 <ul className="space-y-4">
@@ -255,6 +267,7 @@ function Inventory() {
                                 item={item}
                                 onUpdateItem={handleUpdateItem}
                                 categories={categories}
+                                suppliers={suppliers} // Pasamos los proveedores al componente
                             />
                         </motion.div>
                     ))}
@@ -297,6 +310,7 @@ function Inventory() {
                         onClose={toggleCreateArticleModal}
                         onAddItem={handleAddItem}
                         categories={categories}
+                        suppliers={suppliers} // Pasamos los proveedores al modal de creación
                     />
                 )}
             </AnimatePresence>

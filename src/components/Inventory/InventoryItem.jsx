@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EditArticleModal from './EditArticleModal';
 
-function InventoryItem({ item, onUpdateItem, categories }) {
+function InventoryItem({ item, onUpdateItem, categories, suppliers }) {
     const [showEditModal, setShowEditModal] = useState(false);
 
     const statusClasses = {
@@ -59,6 +59,7 @@ function InventoryItem({ item, onUpdateItem, categories }) {
                         onUpdateItem={onUpdateItem}
                         item={item}
                         categories={categories}
+                        suppliers={suppliers} // Pasamos los proveedores al modal de edición
                     />
                 )}
             </AnimatePresence>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 function CreateArticleModal({ show, onClose, onAddItem, categories }) {
     const [newItemName, setNewItemName] = useState("");
@@ -104,45 +104,45 @@ function CreateArticleModal({ show, onClose, onAddItem, categories }) {
 
     return (
         <>
-            {show &&(
+            {show && (
                 <motion.div
-                onClick={handleClose}
-                className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-            >
-                <motion.div
-                    onClick={(e) => e.stopPropagation()}
-                    className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg h-4/5 overflow-y-auto relative"
-                    initial={{ scale: 0.8 }}
-                    animate={{ scale: 1 }}
-                    exit={{ scale: 0.8 }}
+                    onClick={handleClose}
+                    className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
                 >
-                    <button
-                        onClick={handleClose}
-                        className="absolute top-4 right-4 text-gray-600 hover:text-gray-900"
-                        aria-label="Cerrar modal"
+                    <motion.div
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg h-4/5 overflow-y-auto relative"
+                        initial={{ scale: 0.8 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0.8 }}
+                        transition={{ duration: 0.3 }}
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
+                        <button
+                            onClick={handleClose}
+                            className="absolute top-4 right-4 text-gray-600 hover:text-gray-900"
+                            aria-label="Cerrar modal"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
 
-                    <h2 className="text-xl font-semibold mb-4 text-center">Crear Artículo</h2>
-                    <form onSubmit={handleSubmit}>
-                        <div className="flex flex-col space-y-2">
-                            <label>Nombre del Artículo</label>
-                            <input
-                                type="text"
-                                placeholder="Nombre"
-                                value={newItemName}
-                                onChange={(e) => setNewItemName(e.target.value)}
-                                className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
-                            />
-                            <label>Categoría</label>
+                        <h2 className="text-xl font-semibold mb-4 text-center">Crear Artículo</h2>
+                        <form onSubmit={handleSubmit}>
+                            <div className="flex flex-col space-y-2">
+                                <label>Nombre del Artículo</label>
+                                <input
+                                    type="text"
+                                    placeholder="Nombre"
+                                    value={newItemName}
+                                    onChange={(e) => setNewItemName(e.target.value)}
+                                    className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                                />
+                                <label>Categoría</label>
                                 <select
                                     value={newItemCategory}
                                     onChange={(e) => setNewItemCategory(e.target.value)}
@@ -153,115 +153,160 @@ function CreateArticleModal({ show, onClose, onAddItem, categories }) {
                                         <option key={index} value={category}>{category}</option>
                                     ))}
                                 </select>
-                            <label>Unidad de Medida</label>
-                            <select
-                                value={newItemUnit}
-                                onChange={(e) => setNewItemUnit(e.target.value)}
-                                className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
-                            >
-                                <option value="pieza">Pieza (pz o pzs)</option>
-                                <option value="bote">Bote</option>
-                                <option value="bolsa">Bolsa</option>
-                                <option value="barra">Barra</option>
-                                <option value="kg">Kilogramo (kg)</option>
-                                <option value="litro">Litro</option>
-                                <option value="caja">Caja</option>
-                                <option value="paquete">Paquete</option>
-                                <option value="sobre">Sobre</option>
-                                <option value="rebanada">Rebanada</option>
-                                <option value="gramo">Gramo</option>
-                                <option value="mililitro">Mililitro</option>
-                                <option value="rollo">Rollo</option>
-                            </select>
-                            <label>Stock Actual</label>
-                            <input
-                                type="text"
-                                placeholder={`Stock Actual (${newItemUnit})`}
-                                value={newItemStock}
-                                onChange={(e) => setNewItemStock(e.target.value)}
-                                className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
-                            />
-                            <label>Stock Mínimo</label>
-                            <input
-                                type="text"
-                                placeholder={`Stock Mínimo (${newItemUnit})`}
-                                value={newItemMinStock}
-                                onChange={(e) => setNewItemMinStock(e.target.value)}
-                                className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
-                            />
-                            <label>Proveedor</label>
-                            <input
-                                type="text"
-                                placeholder="Proveedor"
-                                value={newItemSupplier}
-                                onChange={(e) => setNewItemSupplier(e.target.value)}
-                                className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
-                            />
-                            <label className="flex items-center">
+                                <label>Unidad de Medida</label>
+                                <select
+                                    value={newItemUnit}
+                                    onChange={(e) => setNewItemUnit(e.target.value)}
+                                    className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                                >
+                                    <option value="pieza">Pieza (pz o pzs)</option>
+                                    <option value="bote">Bote</option>
+                                    <option value="bolsa">Bolsa</option>
+                                    <option value="barra">Barra</option>
+                                    <option value="kg">Kilogramo (kg)</option>
+                                    <option value="litro">Litro</option>
+                                    <option value="caja">Caja</option>
+                                    <option value="paquete">Paquete</option>
+                                    <option value="sobre">Sobre</option>
+                                    <option value="rebanada">Rebanada</option>
+                                    <option value="gramo">Gramo</option>
+                                    <option value="mililitro">Mililitro</option>
+                                    <option value="rollo">Rollo</option>
+                                </select>
+                                <label>Stock Actual</label>
                                 <input
-                                    type="checkbox"
-                                    checked={isOrdered}
-                                    onChange={() => setIsOrdered(!isOrdered)}
-                                    className="mr-2"
+                                    type="text"
+                                    placeholder={`Stock Actual (${newItemUnit})`}
+                                    value={newItemStock}
+                                    onChange={(e) => setNewItemStock(e.target.value)}
+                                    className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 />
-                                Marcar como Pedido
-                            </label>
+                                <label>Stock Mínimo</label>
+                                <input
+                                    type="text"
+                                    placeholder={`Stock Mínimo (${newItemUnit})`}
+                                    value={newItemMinStock}
+                                    onChange={(e) => setNewItemMinStock(e.target.value)}
+                                    className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                                />
+                                <label>Proveedor</label>
+                                <input
+                                    type="text"
+                                    placeholder="Proveedor"
+                                    value={newItemSupplier}
+                                    onChange={(e) => setNewItemSupplier(e.target.value)}
+                                    className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                                />
+                                <label className="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        checked={isOrdered}
+                                        onChange={() => setIsOrdered(!isOrdered)}
+                                        className="mr-2"
+                                    />
+                                    Marcar como Pedido
+                                </label>
 
-                            <div className="flex space-x-4 mb-2">
+                                <div className="flex space-x-4 mb-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab("url")}
+                                        className={`px-4 py-1 rounded-md ${activeTab === "url" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
+                                    >
+                                        URL de Imagen
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab("upload")}
+                                        className={`px-4 py-1 rounded-md ${activeTab === "upload" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
+                                    >
+                                        Subir Imagen
+                                    </button>
+                                </div>
+
+                                {activeTab === "url" && (
+                                    <>
+                                        <label>URL de Imagen</label>
+                                        <input
+                                            type="text"
+                                            placeholder="URL de Imagen"
+                                            value={newItemImageUrl}
+                                            onChange={(e) => {
+                                                setNewItemImageUrl(e.target.value);
+                                                setImageFile(null);
+                                            }}
+                                            className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                                        />
+                                    </>
+                                )}
+                                {activeTab === "upload" && (
+                                    <>
+                                        <label>Subir Imagen</label>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageFileChange}
+                                            className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                                        />
+                                    </>
+                                )}
+
                                 <button
-                                    type="button"
-                                    onClick={() => setActiveTab("url")}
-                                    className={`px-4 py-1 rounded-md ${activeTab === "url" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
+                                    type="submit"
+                                    className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
                                 >
-                                    URL de Imagen
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setActiveTab("upload")}
-                                    className={`px-4 py-1 rounded-md ${activeTab === "upload" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
-                                >
-                                    Subir Imagen
+                                    Agregar
                                 </button>
                             </div>
-
-                            {activeTab === "url" && (
-                                <>
-                                    <label>URL de Imagen</label>
-                                    <input
-                                        type="text"
-                                        placeholder="URL de Imagen"
-                                        value={newItemImageUrl}
-                                        onChange={(e) => {
-                                            setNewItemImageUrl(e.target.value);
-                                            setImageFile(null);
-                                        }}
-                                        className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
-                                    />
-                                </>
-                            )}
-                            {activeTab === "upload" && (
-                                <>
-                                    <label>Subir Imagen</label>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImageFileChange}
-                                        className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
-                                    />
-                                </>
-                            )}
-
-                            <button
-                                type="submit"
-                                className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
-                            >
-                                Agregar
-                            </button>
-                        </div>
-                    </form>
+                        </form>
+                    </motion.div>
                 </motion.div>
-            </motion.div>
             )}
+
+            {/* Modal de Confirmación */}
+            <AnimatePresence>
+                {showConfirmModal && (
+                    <motion.div
+                        onClick={() => setShowConfirmModal(false)}
+                        className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <motion.div
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm text-center"
+                            initial={{ scale: 0.8 }}
+                            animate={{ scale: 1 }}
+                            exit={{ scale: 0.8 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            <h2 className="text-xl font-semibold mb-4">¿Desea cerrar sin guardar los cambios?</h2>
+                            <div className="flex space-x-4 justify-center">
+                                <button
+                                    onClick={() => {
+                                        setShowConfirmModal(false);
+                                    }}
+                                    className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        resetForm();
+                                        setShowConfirmModal(false);
+                                        onClose();
+                                    }}
+                                    className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+                                >
+                                    Cerrar sin guardar
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </>
     );
 }

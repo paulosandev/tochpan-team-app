@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import EditArticleModal from './EditArticleModal';
 
 function InventoryItem({ item, onUpdateItem, categories }) {
@@ -49,15 +50,18 @@ function InventoryItem({ item, onUpdateItem, categories }) {
                 </span>
             </li>
 
-            {showEditModal && (
-                <EditArticleModal
-                    show={showEditModal}
-                    onClose={() => setShowEditModal(false)}
-                    onUpdateItem={onUpdateItem}
-                    item={item}
-                    categories={categories}
-                />
-            )}
+            {/* Envolvemos el modal con AnimatePresence para las animaciones */}
+            <AnimatePresence>
+                {showEditModal && (
+                    <EditArticleModal
+                        show={showEditModal}
+                        onClose={() => setShowEditModal(false)}
+                        onUpdateItem={onUpdateItem}
+                        item={item}
+                        categories={categories}
+                    />
+                )}
+            </AnimatePresence>
         </>
     );
 }

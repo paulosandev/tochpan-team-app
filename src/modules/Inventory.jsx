@@ -3,8 +3,6 @@ import InventoryItem from '../components/Inventory/InventoryItem';
 import { motion, AnimatePresence } from 'framer-motion';
 import CreateArticleModal from '../components/Inventory/CreateArticleModal';
 
-
-
 function Inventory() {
     // Función para actualizar un artículo
     const handleUpdateItem = (updatedItem) => {
@@ -293,12 +291,14 @@ function Inventory() {
 
             {/* Modal para crear artículo */}
             <AnimatePresence>
-                <CreateArticleModal
-                    show={showCreateArticleModal}
-                    onClose={toggleCreateArticleModal}
-                    onAddItem={handleAddItem}
-                    categories={categories}
-                />
+                {showCreateArticleModal && (
+                    <CreateArticleModal
+                        show={showCreateArticleModal}
+                        onClose={toggleCreateArticleModal}
+                        onAddItem={handleAddItem}
+                        categories={categories}
+                    />
+                )}
             </AnimatePresence>
         </div>
     );

@@ -55,15 +55,34 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
 
     const parseFractionalQuantity = (input) => {
         if (typeof input === 'number') return input;
-        const fractionRegex = /^(\d+)?\s*(\d+\/\d+)?$/;
-        const match = input.trim().match(fractionRegex);
-        if (!match) return NaN;
 
-        const wholeNumber = match[1] ? parseInt(match[1], 10) : 0;
-        const fraction = match[2]
-            ? eval(match[2])
-            : 0;
-        return wholeNumber + fraction;
+        input = input.trim();
+
+        // No permitir números negativos
+        if (input.startsWith('-')) {
+            return NaN;
+        }
+
+        // Verificar si es un número decimal
+        if (/^\d+(\.\d+)?$/.test(input)) {
+            return parseFloat(input);
+        }
+
+        // Verificar si es una fracción como '1/2'
+        if (/^\d+\/\d+$/.test(input)) {
+            const [numerator, denominator] = input.split('/').map(Number);
+            return numerator / denominator;
+        }
+
+        // Verificar si es un número mixto como '1 1/2'
+        if (/^\d+\s+\d+\/\d+$/.test(input)) {
+            const [whole, fraction] = input.split(/\s+/);
+            const [numerator, denominator] = fraction.split('/').map(Number);
+            return parseInt(whole, 10) + numerator / denominator;
+        }
+
+        // Si no coincide con ningún patrón, retornar NaN
+        return NaN;
     };
 
     const handleSubmit = (e) => {
@@ -71,8 +90,13 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
         const stockValue = parseFractionalQuantity(itemStock);
         const minStockValue = parseFractionalQuantity(itemMinStock);
 
-        if (isNaN(stockValue) || isNaN(minStockValue)) {
-            alert("Por favor, ingrese cantidades válidas para el stock.");
+        if (
+            isNaN(stockValue) ||
+            isNaN(minStockValue) ||
+            stockValue < 0 ||
+            minStockValue < 0
+        ) {
+            alert("Por favor, ingrese cantidades válidas para el stock en el formato correcto.");
             return;
         }
 
@@ -210,7 +234,11 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
                                     type="text"
                                     placeholder={`Stock Actual (${itemUnit})`}
                                     value={itemStock}
-                                    onChange={(e) => setItemStock(e.target.value)}
+                                    onChange={(e) => {
+                                        // Permitir solo dígitos, espacios, barras y puntos decimales
+                                        const value = e.target.value.replace(/[^0-9\s\/\.]/g, '');
+                                        setItemStock(value);
+                                    }}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 />
                                 <label>Stock Mínimo</label>
@@ -218,7 +246,11 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
                                     type="text"
                                     placeholder={`Stock Mínimo (${itemUnit})`}
                                     value={itemMinStock}
-                                    onChange={(e) => setItemMinStock(e.target.value)}
+                                    onChange={(e) => {
+                                        // Permitir solo dígitos, espacios, barras y puntos decimales
+                                        const value = e.target.value.replace(/[^0-9\s\/\.]/g, '');
+                                        setItemMinStock(value);
+                                    }}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 />
 
@@ -332,14 +364,14 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
                     >
                         <motion.div
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm"
+                            className="bg-white text-center rounded-lg shadow-lg p-6 w-full max-w-sm"
                             initial={{ scale: 0.8 }}
                             animate={{ scale: 1 }}
                             exit={{ scale: 0.8 }}
                             transition={{ duration: 0.3 }}
                         >
                             <h2 className="text-xl font-semibold mb-4">¿Desea cerrar sin guardar los cambios?</h2>
-                            <div className="flex space-x-4">
+                            <div className="flex justify-center space-x-4">
                                 <button
                                     onClick={() => {
                                         setShowConfirmModal(false);

@@ -26,15 +26,34 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers })
 
     const parseFractionalQuantity = (input) => {
         if (typeof input === 'number') return input;
-        const fractionRegex = /^(\d+)?\s*(\d+\/\d+)?$/;
-        const match = input.trim().match(fractionRegex);
-        if (!match) return NaN;
 
-        const wholeNumber = match[1] ? parseInt(match[1], 10) : 0;
-        const fraction = match[2]
-            ? eval(match[2])
-            : 0;
-        return wholeNumber + fraction;
+        input = input.trim();
+
+        // No permitir números negativos
+        if (input.startsWith('-')) {
+            return NaN;
+        }
+
+        // Verificar si es un número decimal
+        if (/^\d+(\.\d+)?$/.test(input)) {
+            return parseFloat(input);
+        }
+
+        // Verificar si es una fracción como '1/2'
+        if (/^\d+\/\d+$/.test(input)) {
+            const [numerator, denominator] = input.split('/').map(Number);
+            return numerator / denominator;
+        }
+
+        // Verificar si es un número mixto como '1 1/2'
+        if (/^\d+\s+\d+\/\d+$/.test(input)) {
+            const [whole, fraction] = input.split(/\s+/);
+            const [numerator, denominator] = fraction.split('/').map(Number);
+            return parseInt(whole, 10) + numerator / denominator;
+        }
+
+        // Si no coincide con ningún patrón, retornar NaN
+        return NaN;
     };
 
     const handleSubmit = (e) => {
@@ -42,8 +61,13 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers })
         const stockValue = parseFractionalQuantity(newItemStock);
         const minStockValue = parseFractionalQuantity(newItemMinStock);
 
-        if (isNaN(stockValue) || isNaN(minStockValue)) {
-            alert("Por favor, ingrese cantidades válidas para el stock.");
+        if (
+            isNaN(stockValue) ||
+            isNaN(minStockValue) ||
+            stockValue < 0 ||
+            minStockValue < 0
+        ) {
+            alert("Por favor, ingrese cantidades válidas para el stock en el formato correcto.");
             return;
         }
 
@@ -191,7 +215,11 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers })
                                     type="text"
                                     placeholder={`Stock Actual (${newItemUnit})`}
                                     value={newItemStock}
-                                    onChange={(e) => setNewItemStock(e.target.value)}
+                                    onChange={(e) => {
+                                        // Permitir solo dígitos, espacios, barras y puntos decimales
+                                        const value = e.target.value.replace(/[^0-9\s\/\.]/g, '');
+                                        setNewItemStock(value);
+                                    }}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 />
                                 <label>Stock Mínimo</label>
@@ -199,7 +227,11 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers })
                                     type="text"
                                     placeholder={`Stock Mínimo (${newItemUnit})`}
                                     value={newItemMinStock}
-                                    onChange={(e) => setNewItemMinStock(e.target.value)}
+                                    onChange={(e) => {
+                                        // Permitir solo dígitos, espacios, barras y puntos decimales
+                                        const value = e.target.value.replace(/[^0-9\s\/\.]/g, '');
+                                        setNewItemMinStock(value);
+                                    }}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 />
 

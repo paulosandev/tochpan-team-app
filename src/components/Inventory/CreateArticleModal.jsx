@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers }) {
+function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, brands, areas }) {
     const [newItemName, setNewItemName] = useState("");
     const [newItemCategory, setNewItemCategory] = useState("");
+    const [newItemBrand, setNewItemBrand] = useState("");
+    const [newItemArea, setNewItemArea] = useState("");
     const [newItemStock, setNewItemStock] = useState("");
     const [newItemMinStock, setNewItemMinStock] = useState("");
     const [newItemUnit, setNewItemUnit] = useState("pieza");
@@ -16,6 +18,12 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers })
 
     const [newSupplierName, setNewSupplierName] = useState("");
     const [supplierList, setSupplierList] = useState(suppliers);
+
+    const [newBrandName, setNewBrandName] = useState("");
+    const [brandList, setBrandList] = useState(brands);
+
+    const [newAreaName, setNewAreaName] = useState("");
+    const [areaList, setAreaList] = useState(areas);
 
     const calculateStatus = (stock, minStock, isOrdered) => {
         if (isOrdered) return "Pedido";
@@ -77,6 +85,8 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers })
             id: Date.now() + Math.floor(Math.random() * 1000),
             name: newItemName,
             category: newItemCategory,
+            brand: newItemBrand,
+            area: newItemArea,
             stock: stockValue,
             minStock: minStockValue,
             unit: newItemUnit,
@@ -94,10 +104,15 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers })
     const resetForm = () => {
         setNewItemName("");
         setNewItemCategory("");
+        setNewItemBrand("");
+        setNewBrandName("");
+        setNewItemArea("");
+        setNewAreaName("");
         setNewItemStock("");
         setNewItemMinStock("");
         setNewItemUnit("pieza");
         setNewItemSupplier("");
+        setNewSupplierName("");
         setNewItemImageUrl("");
         setImageFile(null);
         setIsOrdered(false);
@@ -108,6 +123,8 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers })
         if (
             newItemName ||
             newItemCategory ||
+            newItemBrand ||
+            newItemArea ||
             newItemStock ||
             newItemMinStock ||
             newItemUnit !== "pieza" ||
@@ -132,6 +149,22 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers })
             setSupplierList([...supplierList, newSupplierName]);
             setNewItemSupplier(newSupplierName);
             setNewSupplierName("");
+        }
+    };
+
+    const handleAddBrand = () => {
+        if (newBrandName && !brandList.includes(newBrandName)) {
+            setBrandList([...brandList, newBrandName]);
+            setNewItemBrand(newBrandName);
+            setNewBrandName("");
+        }
+    };
+
+    const handleAddArea = () => {
+        if (newAreaName && !areaList.includes(newAreaName)) {
+            setAreaList([...areaList, newAreaName]);
+            setNewItemArea(newAreaName);
+            setNewAreaName("");
         }
     };
 
@@ -179,6 +212,7 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers })
                                     onChange={(e) => setNewItemName(e.target.value)}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 />
+
                                 <label>Categoría</label>
                                 <select
                                     value={newItemCategory}
@@ -190,6 +224,65 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers })
                                         <option key={index} value={category}>{category}</option>
                                     ))}
                                 </select>
+
+                                {/* Marca */}
+                                <label>Marca</label>
+                                <select
+                                    value={newItemBrand}
+                                    onChange={(e) => setNewItemBrand(e.target.value)}
+                                    className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                                >
+                                    <option value="">Seleccione una marca</option>
+                                    {brandList.map((brand, index) => (
+                                        <option key={index} value={brand}>{brand}</option>
+                                    ))}
+                                </select>
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Nueva Marca"
+                                        value={newBrandName}
+                                        onChange={(e) => setNewBrandName(e.target.value)}
+                                        className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleAddBrand}
+                                        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                                    >
+                                        Agregar Marca
+                                    </button>
+                                </div>
+
+                                {/* Área */}
+                                <label>Área</label>
+                                <select
+                                    value={newItemArea}
+                                    onChange={(e) => setNewItemArea(e.target.value)}
+                                    className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                                >
+                                    <option value="">Seleccione un área</option>
+                                    {areaList.map((area, index) => (
+                                        <option key={index} value={area}>{area}</option>
+                                    ))}
+                                </select>
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Nueva Área"
+                                        value={newAreaName}
+                                        onChange={(e) => setNewAreaName(e.target.value)}
+                                        className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleAddArea}
+                                        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                                    >
+                                        Agregar Área
+                                    </button>
+                                </div>
+
                                 <label>Unidad de Medida</label>
                                 <select
                                     value={newItemUnit}

@@ -58,6 +58,8 @@ function Inventory() {
 
     const [categories, setCategories] = useState([]);
     const [suppliers, setSuppliers] = useState([]);
+    const [brands, setBrands] = useState([]);
+    const [areas, setAreas] = useState([]);
 
     useEffect(() => {
         // Obtener los datos del inventario
@@ -72,7 +74,7 @@ function Inventory() {
             })
             .catch(error => console.error('Error al cargar los datos del inventario:', error));
 
-        // Obtener las categorías desde el archivo JSON
+        // Obtener las categorías
         fetch('/data/CategoriesData.json')
             .then(response => response.json())
             .then(data => {
@@ -80,13 +82,29 @@ function Inventory() {
             })
             .catch(error => console.error('Error al cargar las categorías:', error));
 
-        // Obtener los proveedores desde el archivo JSON
+        // Obtener los proveedores
         fetch('/data/SuppliersData.json')
             .then(response => response.json())
             .then(data => {
                 setSuppliers(data);
             })
             .catch(error => console.error('Error al cargar los proveedores:', error));
+
+        // Obtener las marcas
+        fetch('/data/BrandsData.json')
+            .then(response => response.json())
+            .then(data => {
+                setBrands(data);
+            })
+            .catch(error => console.error('Error al cargar las marcas:', error));
+
+        // Obtener las áreas
+        fetch('/data/AreasData.json')
+            .then(response => response.json())
+            .then(data => {
+                setAreas(data);
+            })
+            .catch(error => console.error('Error al cargar las áreas:', error));
     }, []);
 
     // Filtra y ordena los productos de inventario según los filtros activos
@@ -267,7 +285,9 @@ function Inventory() {
                                 item={item}
                                 onUpdateItem={handleUpdateItem}
                                 categories={categories}
-                                suppliers={suppliers} // Pasamos los proveedores al componente
+                                suppliers={suppliers}
+                                brands={brands}
+                                areas={areas}
                             />
                         </motion.div>
                     ))}
@@ -310,7 +330,9 @@ function Inventory() {
                         onClose={toggleCreateArticleModal}
                         onAddItem={handleAddItem}
                         categories={categories}
-                        suppliers={suppliers} // Pasamos los proveedores al modal de creación
+                        suppliers={suppliers}
+                        brands={brands}
+                        areas={areas}
                     />
                 )}
             </AnimatePresence>

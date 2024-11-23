@@ -3,22 +3,28 @@
         "id": 1,
         "name": "Jarabe de caramelo",
         "category": "Bebidas",
+        "brand": "Monin",
+        "area": "Barra",
         "stock": 1,
         "minStock": 2,
         "unit": "litro",
         "isOrdered": false,
         "supplier": "Monin",
-        "imageUrl": "https://images.unsplash.com/photo-1578985545062-69928b1d9587"
+        "imageUrl": "https://images.unsplash.com/photo-1578985545062-69928b1d9587",
+        "status": "Escaso"
     },
     {
         "id": 2,
         "name": "Leche",
         "category": "Lácteos",
+        "brand": "Alpura",
+        "area": "Cocina",
         "stock": 5,
         "minStock": 3,
         "unit": "litro",
         "isOrdered": false,
         "supplier": "Alpura",
-        "imageUrl": "https://images.unsplash.com/photo-1582719478181-a6ddc9d90a3e"
+        "imageUrl": "https://images.unsplash.com/photo-1582719478181-a6ddc9d90a3e",
+        "status": "Suficiente"
     }
 ]

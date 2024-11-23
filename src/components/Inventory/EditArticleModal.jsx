@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppliers }) {
+function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppliers, brands, areas }) {
     const [itemName, setItemName] = useState("");
     const [itemCategory, setItemCategory] = useState("");
+    const [itemBrand, setItemBrand] = useState("");
+    const [itemArea, setItemArea] = useState("");
     const [itemStock, setItemStock] = useState("");
     const [itemMinStock, setItemMinStock] = useState("");
     const [itemUnit, setItemUnit] = useState("pieza");
@@ -17,12 +19,20 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
     const [newSupplierName, setNewSupplierName] = useState("");
     const [supplierList, setSupplierList] = useState(suppliers);
 
+    const [newBrandName, setNewBrandName] = useState("");
+    const [brandList, setBrandList] = useState(brands);
+
+    const [newAreaName, setNewAreaName] = useState("");
+    const [areaList, setAreaList] = useState(areas);
+
     const initialValuesRef = React.useRef({});
 
     useEffect(() => {
         if (item) {
             setItemName(item.name);
             setItemCategory(item.category);
+            setItemBrand(item.brand || "");
+            setItemArea(item.area || "");
             setItemStock(item.stock.toString());
             setItemMinStock(item.minStock.toString());
             setItemUnit(item.unit);
@@ -33,6 +43,8 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
             initialValuesRef.current = {
                 itemName: item.name,
                 itemCategory: item.category,
+                itemBrand: item.brand || "",
+                itemArea: item.area || "",
                 itemStock: item.stock.toString(),
                 itemMinStock: item.minStock.toString(),
                 itemUnit: item.unit,
@@ -42,9 +54,11 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
                 imageFile: null,
             };
 
-            setSupplierList([...new Set([...suppliers, item.supplier])]); // Aseguramos que el proveedor esté en la lista
+            setSupplierList([...new Set([...suppliers, item.supplier])]);
+            setBrandList([...new Set([...brands, item.brand])]);
+            setAreaList([...new Set([...areas, item.area])]);
         }
-    }, [item, suppliers]);
+    }, [item, suppliers, brands, areas]);
 
     const calculateStatus = (stock, minStock, isOrdered) => {
         if (isOrdered) return "Pedido";
@@ -106,6 +120,8 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
             ...item,
             name: itemName,
             category: itemCategory,
+            brand: itemBrand,
+            area: itemArea,
             stock: stockValue,
             minStock: minStockValue,
             unit: itemUnit,
@@ -124,6 +140,8 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
         const hasChanges =
             itemName !== initialValues.itemName ||
             itemCategory !== initialValues.itemCategory ||
+            itemBrand !== initialValues.itemBrand ||
+            itemArea !== initialValues.itemArea ||
             itemStock !== initialValues.itemStock ||
             itemMinStock !== initialValues.itemMinStock ||
             itemUnit !== initialValues.itemUnit ||
@@ -150,6 +168,22 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
             setSupplierList([...supplierList, newSupplierName]);
             setItemSupplier(newSupplierName);
             setNewSupplierName("");
+        }
+    };
+
+    const handleAddBrand = () => {
+        if (newBrandName && !brandList.includes(newBrandName)) {
+            setBrandList([...brandList, newBrandName]);
+            setItemBrand(newBrandName);
+            setNewBrandName("");
+        }
+    };
+
+    const handleAddArea = () => {
+        if (newAreaName && !areaList.includes(newAreaName)) {
+            setAreaList([...areaList, newAreaName]);
+            setItemArea(newAreaName);
+            setNewAreaName("");
         }
     };
 
@@ -198,6 +232,7 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
                                     onChange={(e) => setItemName(e.target.value)}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 />
+
                                 <label>Categoría</label>
                                 <select
                                     value={itemCategory}
@@ -209,6 +244,65 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
                                         <option key={index} value={category}>{category}</option>
                                     ))}
                                 </select>
+
+                                {/* Marca */}
+                                <label>Marca</label>
+                                <select
+                                    value={itemBrand}
+                                    onChange={(e) => setItemBrand(e.target.value)}
+                                    className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                                >
+                                    <option value="">Seleccione una marca</option>
+                                    {brandList.map((brand, index) => (
+                                        <option key={index} value={brand}>{brand}</option>
+                                    ))}
+                                </select>
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Nueva Marca"
+                                        value={newBrandName}
+                                        onChange={(e) => setNewBrandName(e.target.value)}
+                                        className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleAddBrand}
+                                        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                                    >
+                                        Agregar Marca
+                                    </button>
+                                </div>
+
+                                {/* Área */}
+                                <label>Área</label>
+                                <select
+                                    value={itemArea}
+                                    onChange={(e) => setItemArea(e.target.value)}
+                                    className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                                >
+                                    <option value="">Seleccione un área</option>
+                                    {areaList.map((area, index) => (
+                                        <option key={index} value={area}>{area}</option>
+                                    ))}
+                                </select>
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Nueva Área"
+                                        value={newAreaName}
+                                        onChange={(e) => setNewAreaName(e.target.value)}
+                                        className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleAddArea}
+                                        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                                    >
+                                        Agregar Área
+                                    </button>
+                                </div>
+
                                 <label>Unidad de Medida</label>
                                 <select
                                     value={itemUnit}

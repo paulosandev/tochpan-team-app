@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EditArticleModal from './EditArticleModal';
 
-function InventoryItem({ item, onUpdateItem, categories, suppliers }) {
+function InventoryItem({ item, onUpdateItem, categories, suppliers, brands, areas }) {
     const [showEditModal, setShowEditModal] = useState(false);
 
     const statusClasses = {
@@ -36,6 +36,8 @@ function InventoryItem({ item, onUpdateItem, categories, suppliers }) {
                     <div className="ml-4">
                         <h2 className="text-lg font-semibold">{item.name}</h2>
                         <p className="text-gray-500 text-sm">Categoría: {item.category}</p>
+                        <p className="text-gray-500 text-sm">Marca: {item.brand}</p>
+                        <p className="text-gray-500 text-sm">Área: {item.area}</p>
                         <p className="text-gray-500 text-sm">Proveedor: {item.supplier}</p>
                         <p className="text-gray-500 text-sm">
                             Stock: {formatQuantity(item.stock)} {item.unit}
@@ -59,7 +61,9 @@ function InventoryItem({ item, onUpdateItem, categories, suppliers }) {
                         onUpdateItem={onUpdateItem}
                         item={item}
                         categories={categories}
-                        suppliers={suppliers} // Pasamos los proveedores al modal de edición
+                        suppliers={suppliers}
+                        brands={brands}
+                        areas={areas}
                     />
                 )}
             </AnimatePresence>

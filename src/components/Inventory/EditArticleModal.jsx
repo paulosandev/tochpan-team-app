@@ -16,15 +16,6 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
     const [activeTab, setActiveTab] = useState("url");
     const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-    const [newSupplierName, setNewSupplierName] = useState("");
-    const [supplierList, setSupplierList] = useState(suppliers);
-
-    const [newBrandName, setNewBrandName] = useState("");
-    const [brandList, setBrandList] = useState(brands);
-
-    const [newAreaName, setNewAreaName] = useState("");
-    const [areaList, setAreaList] = useState(areas);
-
     const initialValuesRef = React.useRef({});
 
     useEffect(() => {
@@ -53,12 +44,8 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
                 isOrdered: item.isOrdered,
                 imageFile: null,
             };
-
-            setSupplierList([...new Set([...suppliers, item.supplier])]);
-            setBrandList([...new Set([...brands, item.brand])]);
-            setAreaList([...new Set([...areas, item.area])]);
         }
-    }, [item, suppliers, brands, areas]);
+    }, [item]);
 
     const calculateStatus = (stock, minStock, isOrdered) => {
         if (isOrdered) return "Pedido";
@@ -163,30 +150,6 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
         setItemImageUrl("");
     };
 
-    const handleAddSupplier = () => {
-        if (newSupplierName && !supplierList.includes(newSupplierName)) {
-            setSupplierList([...supplierList, newSupplierName]);
-            setItemSupplier(newSupplierName);
-            setNewSupplierName("");
-        }
-    };
-
-    const handleAddBrand = () => {
-        if (newBrandName && !brandList.includes(newBrandName)) {
-            setBrandList([...brandList, newBrandName]);
-            setItemBrand(newBrandName);
-            setNewBrandName("");
-        }
-    };
-
-    const handleAddArea = () => {
-        if (newAreaName && !areaList.includes(newAreaName)) {
-            setAreaList([...areaList, newAreaName]);
-            setItemArea(newAreaName);
-            setNewAreaName("");
-        }
-    };
-
     if (!show) return null;
 
     return (
@@ -253,26 +216,10 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 >
                                     <option value="">Seleccione una marca</option>
-                                    {brandList.map((brand, index) => (
+                                    {brands.map((brand, index) => (
                                         <option key={index} value={brand}>{brand}</option>
                                     ))}
                                 </select>
-                                <div className="flex items-center space-x-2">
-                                    <input
-                                        type="text"
-                                        placeholder="Nueva Marca"
-                                        value={newBrandName}
-                                        onChange={(e) => setNewBrandName(e.target.value)}
-                                        className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={handleAddBrand}
-                                        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-                                    >
-                                        Agregar Marca
-                                    </button>
-                                </div>
 
                                 {/* Área */}
                                 <label>Área</label>
@@ -282,26 +229,10 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 >
                                     <option value="">Seleccione un área</option>
-                                    {areaList.map((area, index) => (
+                                    {areas.map((area, index) => (
                                         <option key={index} value={area}>{area}</option>
                                     ))}
                                 </select>
-                                <div className="flex items-center space-x-2">
-                                    <input
-                                        type="text"
-                                        placeholder="Nueva Área"
-                                        value={newAreaName}
-                                        onChange={(e) => setNewAreaName(e.target.value)}
-                                        className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={handleAddArea}
-                                        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-                                    >
-                                        Agregar Área
-                                    </button>
-                                </div>
 
                                 <label>Unidad de Medida</label>
                                 <select
@@ -356,26 +287,10 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 >
                                     <option value="">Seleccione un proveedor</option>
-                                    {supplierList.map((supplier, index) => (
+                                    {suppliers.map((supplier, index) => (
                                         <option key={index} value={supplier}>{supplier}</option>
                                     ))}
                                 </select>
-                                <div className="flex items-center space-x-2">
-                                    <input
-                                        type="text"
-                                        placeholder="Nuevo Proveedor"
-                                        value={newSupplierName}
-                                        onChange={(e) => setNewSupplierName(e.target.value)}
-                                        className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={handleAddSupplier}
-                                        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-                                    >
-                                        Agregar Proveedor
-                                    </button>
-                                </div>
 
                                 <label className="flex items-center">
                                     <input

@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EditArticleModal from './EditArticleModal';
+import UpdateStockModal from './UpdateStockModal';
 
 function InventoryItem({ item, onUpdateItem, categories, suppliers, brands, areas }) {
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showUpdateStockModal, setShowUpdateStockModal] = useState(false);
     const [showMenu, setShowMenu] = useState(false);
     const menuRef = useRef(null);
 
@@ -14,17 +16,12 @@ function InventoryItem({ item, onUpdateItem, categories, suppliers, brands, area
         Pedido: "bg-blue-100 text-blue-700",
     };
 
-    // Función para formatear cantidades fraccionarias
     const formatQuantity = (quantity) => {
-        if (Number.isInteger(quantity)) {
-            return quantity;
-        } else {
-            return quantity.toFixed(2);
-        }
+        return Number.isInteger(quantity) ? quantity : quantity.toFixed(2);
     };
 
     const toggleMenu = (e) => {
-        e.stopPropagation(); // Evita que el evento se propague al elemento padre
+        e.stopPropagation();
         setShowMenu(!showMenu);
     };
 
@@ -36,11 +33,9 @@ function InventoryItem({ item, onUpdateItem, categories, suppliers, brands, area
 
     const handleViewClick = (e) => {
         e.stopPropagation();
-        // Implementa la funcionalidad de "Ver" aquí si es necesario
         setShowMenu(false);
     };
 
-    // Cierra el menú si se hace clic fuera de él
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -55,9 +50,16 @@ function InventoryItem({ item, onUpdateItem, categories, suppliers, brands, area
         };
     }, [showMenu]);
 
+    const handleItemClick = () => {
+        setShowUpdateStockModal(true);
+    };
+
     return (
         <>
-            <li className="bg-white rounded-lg shadow-md p-4 flex items-center justify-between relative">
+            <li
+                className="bg-white rounded-lg shadow-md p-4 flex items-center justify-between relative cursor-pointer"
+                onClick={handleItemClick}
+            >
                 <div className="flex items-center">
                     <img src={item.imageUrl} alt={item.name} className="w-12 h-12 rounded-md" />
                     <div className="ml-4">
@@ -80,9 +82,7 @@ function InventoryItem({ item, onUpdateItem, categories, suppliers, brands, area
                     </span>
                     <div className="relative" ref={menuRef}>
                         <button onClick={toggleMenu} className="text-gray-500 hover:text-gray-700 focus:outline-none">
-                            {/* Ícono de tres puntos verticales */}
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor"
-                                viewBox="0 0 20 20">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" />
                             </svg>
                         </button>
@@ -106,7 +106,17 @@ function InventoryItem({ item, onUpdateItem, categories, suppliers, brands, area
                 </div>
             </li>
 
-            {/* Modal de edición */}
+            <AnimatePresence>
+                {showUpdateStockModal && (
+                    <UpdateStockModal
+                        show={showUpdateStockModal}
+                        onClose={() => setShowUpdateStockModal(false)}
+                        item={item}
+                        onUpdateItem={onUpdateItem}
+                    />
+                )}
+            </AnimatePresence>
+
             <AnimatePresence>
                 {showEditModal && (
                     <EditArticleModal

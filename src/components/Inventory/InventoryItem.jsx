@@ -16,10 +16,6 @@ function InventoryItem({ item, onUpdateItem, categories, suppliers, brands, area
         Pedido: "bg-blue-100 text-blue-700",
     };
 
-    const formatQuantity = (quantity) => {
-        return Number.isInteger(quantity) ? quantity : quantity.toFixed(2);
-    };
-
     const toggleMenu = (e) => {
         e.stopPropagation();
         setShowMenu(!showMenu);
@@ -69,10 +65,10 @@ function InventoryItem({ item, onUpdateItem, categories, suppliers, brands, area
                         <p className="text-gray-500 text-sm">Área: {item.area}</p>
                         <p className="text-gray-500 text-sm">Proveedor: {item.supplier}</p>
                         <p className="text-gray-500 text-sm">
-                            Stock: {formatQuantity(item.stock)} {item.unit}
+                            Stock: {item.originalStock || item.stock} {item.unit}
                         </p>
                         <p className="text-gray-500 text-sm">
-                            Stock Mínimo: {formatQuantity(item.minStock)} {item.unit}
+                            Stock Mínimo: {item.minStock} {item.unit}
                         </p>
                     </div>
                 </div>

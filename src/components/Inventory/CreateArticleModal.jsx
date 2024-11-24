@@ -55,6 +55,39 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
         return NaN;
     };
 
+    const normalizeFraction = (input) => {
+        if (/^\d+\s+\d+\/\d+$/.test(input)) {
+            const [whole, fraction] = input.split(/\s+/);
+            const [numerator, denominator] = fraction.split('/').map(Number);
+
+            const totalNumerator = parseInt(whole, 10) * denominator + numerator;
+            const newWhole = Math.floor(totalNumerator / denominator);
+            const newNumerator = totalNumerator % denominator;
+
+            if (newNumerator === 0) {
+                return `${newWhole}`;
+            } else {
+                return `${newWhole} ${newNumerator}/${denominator}`;
+            }
+        }
+
+        if (/^\d+\/\d+$/.test(input)) {
+            const [numerator, denominator] = input.split('/').map(Number);
+            const newWhole = Math.floor(numerator / denominator);
+            const newNumerator = numerator % denominator;
+
+            if (newWhole === 0) {
+                return `${newNumerator}/${denominator}`;
+            } else if (newNumerator === 0) {
+                return `${newWhole}`;
+            } else {
+                return `${newWhole} ${newNumerator}/${denominator}`;
+            }
+        }
+
+        return input;
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
         const stockValue = parseFractionalQuantity(newItemStock);
@@ -70,6 +103,9 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
             return;
         }
 
+        const normalizedStock = normalizeFraction(newItemStock);
+        const normalizedMinStock = normalizeFraction(newItemMinStock);
+
         const status = calculateStatus(stockValue, minStockValue, isOrdered);
 
         const newItem = {
@@ -84,7 +120,9 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
             supplier: newItemSupplier,
             imageUrl: imageFile ? URL.createObjectURL(imageFile) : newItemImageUrl,
             status,
-            isOrdered
+            isOrdered,
+            originalStock: normalizedStock,
+            originalMinStock: normalizedMinStock
         };
 
         onAddItem(newItem);

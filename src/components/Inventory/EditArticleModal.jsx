@@ -20,12 +20,15 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
 
     useEffect(() => {
         if (item) {
+            const normalizedStock = normalizeFraction(item.stock.toString());
+            const normalizedMinStock = normalizeFraction(item.minStock.toString());
+
             setItemName(item.name);
             setItemCategory(item.category);
             setItemBrand(item.brand || "");
             setItemArea(item.area || "");
-            setItemStock(item.stock.toString());
-            setItemMinStock(item.minStock.toString());
+            setItemStock(normalizedStock);
+            setItemMinStock(normalizedMinStock);
             setItemUnit(item.unit);
             setItemSupplier(item.supplier);
             setItemImageUrl(item.imageUrl);
@@ -36,8 +39,8 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
                 itemCategory: item.category,
                 itemBrand: item.brand || "",
                 itemArea: item.area || "",
-                itemStock: item.stock.toString(),
-                itemMinStock: item.minStock.toString(),
+                itemStock: normalizedStock,
+                itemMinStock: normalizedMinStock,
                 itemUnit: item.unit,
                 itemSupplier: item.supplier,
                 itemImageUrl: item.imageUrl,
@@ -47,11 +50,37 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
         }
     }, [item]);
 
-    const calculateStatus = (stock, minStock, isOrdered) => {
-        if (isOrdered) return "Pedido";
-        if (stock >= minStock) return "Suficiente";
-        if (stock >= minStock * 0.15) return "Escaso";
-        return "Agotado";
+    const normalizeFraction = (input) => {
+        if (/^\d+\s+\d+\/\d+$/.test(input)) {
+            const [whole, fraction] = input.split(/\s+/);
+            const [numerator, denominator] = fraction.split('/').map(Number);
+
+            const totalNumerator = parseInt(whole, 10) * denominator + numerator;
+            const newWhole = Math.floor(totalNumerator / denominator);
+            const newNumerator = totalNumerator % denominator;
+
+            if (newNumerator === 0) {
+                return `${newWhole}`;
+            } else {
+                return `${newWhole} ${newNumerator}/${denominator}`;
+            }
+        }
+
+        if (/^\d+\/\d+$/.test(input)) {
+            const [numerator, denominator] = input.split('/').map(Number);
+            const newWhole = Math.floor(numerator / denominator);
+            const newNumerator = numerator % denominator;
+
+            if (newWhole === 0) {
+                return `${newNumerator}/${denominator}`;
+            } else if (newNumerator === 0) {
+                return `${newWhole}`;
+            } else {
+                return `${newWhole} ${newNumerator}/${denominator}`;
+            }
+        }
+
+        return input;
     };
 
     const parseFractionalQuantity = (input) => {
@@ -59,35 +88,38 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
 
         input = input.trim();
 
-        // No permitir números negativos
         if (input.startsWith('-')) {
             return NaN;
         }
 
-        // Verificar si es un número decimal
         if (/^\d+(\.\d+)?$/.test(input)) {
             return parseFloat(input);
         }
 
-        // Verificar si es una fracción como '1/2'
         if (/^\d+\/\d+$/.test(input)) {
             const [numerator, denominator] = input.split('/').map(Number);
             return numerator / denominator;
         }
 
-        // Verificar si es un número mixto como '1 1/2'
         if (/^\d+\s+\d+\/\d+$/.test(input)) {
             const [whole, fraction] = input.split(/\s+/);
             const [numerator, denominator] = fraction.split('/').map(Number);
             return parseInt(whole, 10) + numerator / denominator;
         }
 
-        // Si no coincide con ningún patrón, retornar NaN
         return NaN;
+    };
+
+    const calculateStatus = (stock, minStock, isOrdered) => {
+        if (isOrdered) return "Pedido";
+        if (stock >= minStock) return "Suficiente";
+        if (stock >= minStock * 0.15) return "Escaso";
+        return "Agotado";
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
         const stockValue = parseFractionalQuantity(itemStock);
         const minStockValue = parseFractionalQuantity(itemMinStock);
 
@@ -100,6 +132,9 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
             alert("Por favor, ingrese cantidades válidas para el stock en el formato correcto.");
             return;
         }
+
+        const normalizedStock = normalizeFraction(itemStock);
+        const normalizedMinStock = normalizeFraction(itemMinStock);
 
         const status = calculateStatus(stockValue, minStockValue, isOrdered);
 
@@ -116,6 +151,8 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
             imageUrl: imageFile ? URL.createObjectURL(imageFile) : itemImageUrl,
             status,
             isOrdered,
+            originalStock: normalizedStock,
+            originalMinStock: normalizedMinStock,
         };
 
         onUpdateItem(updatedItem);
@@ -154,7 +191,7 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
 
     return (
         <>
-            {show && (
+              {show && (
                 <motion.div
                     onClick={handleClose}
                     className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"

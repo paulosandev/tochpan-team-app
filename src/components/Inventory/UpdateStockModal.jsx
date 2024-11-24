@@ -162,7 +162,7 @@ function UpdateStockModal({ show, onClose, item, onUpdateItem }) {
                         <label>Artículo: {item.name}</label>
 
                         <label>Stock Actual</label>
-                        <input
+                        <div className="flex"><input
                             type="text"
                             placeholder={`Stock Actual (${item.unit})`}
                             value={itemStock}
@@ -171,8 +171,11 @@ function UpdateStockModal({ show, onClose, item, onUpdateItem }) {
                                 const value = e.target.value.replace(/[^0-9\s\/\.]/g, "");
                                 setItemStock(value);
                             }}
-                            className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
+                            className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-4/5"
                         />
+
+                        <b className="pl-2">{item.unit}</b></div>
+
 
                         <label className="flex items-center">
                             <input

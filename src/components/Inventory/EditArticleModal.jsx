@@ -1,93 +1,60 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppliers, brands, areas }) {
+function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppliers, brands, areas, token, baseUrl }) {
     const [itemName, setItemName] = useState("");
-    const [itemCategory, setItemCategory] = useState("");
-    const [itemBrand, setItemBrand] = useState("");
-    const [itemArea, setItemArea] = useState("");
+    const [itemCategoryId, setItemCategoryId] = useState("");
+    const [itemBrandId, setItemBrandId] = useState("");
+    const [itemAreaId, setItemAreaId] = useState("");
     const [itemStock, setItemStock] = useState("");
     const [itemMinStock, setItemMinStock] = useState("");
     const [itemUnit, setItemUnit] = useState("pieza");
-    const [itemSupplier, setItemSupplier] = useState("");
+    const [itemSupplierId, setItemSupplierId] = useState("");
     const [itemImageUrl, setItemImageUrl] = useState("");
     const [isOrdered, setIsOrdered] = useState(false);
     const [imageFile, setImageFile] = useState(null);
     const [activeTab, setActiveTab] = useState("url");
     const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-    const initialValuesRef = React.useRef({});
+    const initialValuesRef = useRef({});
+
+    const headers = {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+    };
 
     useEffect(() => {
         if (item) {
-            const normalizedStock = normalizeFraction(item.stock.toString());
-            const normalizedMinStock = normalizeFraction(item.minStock.toString());
-
             setItemName(item.name);
-            setItemCategory(item.category);
-            setItemBrand(item.brand || "");
-            setItemArea(item.area || "");
-            setItemStock(normalizedStock);
-            setItemMinStock(normalizedMinStock);
+            setItemCategoryId(item.category_id ? item.category_id.toString() : "");
+            setItemBrandId(item.brand_id ? item.brand_id.toString() : "");
+            setItemAreaId(item.area_id ? item.area_id.toString() : "");
+            setItemStock(item.originalStockInput ?? item.stock.toString());
+            setItemMinStock(item.originalMinStockInput ?? item.min_stock.toString());
             setItemUnit(item.unit);
-            setItemSupplier(item.supplier);
-            setItemImageUrl(item.imageUrl);
-            setIsOrdered(item.isOrdered);
+            setItemSupplierId(item.supplier_id ? item.supplier_id.toString() : "");
+            setItemImageUrl(item.image_url);
+            setIsOrdered(item.is_ordered === 1);
 
             initialValuesRef.current = {
                 itemName: item.name,
-                itemCategory: item.category,
-                itemBrand: item.brand || "",
-                itemArea: item.area || "",
-                itemStock: normalizedStock,
-                itemMinStock: normalizedMinStock,
+                itemCategoryId: item.category_id ? item.category_id.toString() : "",
+                itemBrandId: item.brand_id ? item.brand_id.toString() : "",
+                itemAreaId: item.area_id ? item.area_id.toString() : "",
+                itemStock: item.originalStockInput ?? item.stock.toString(),
+                itemMinStock: item.originalMinStockInput ?? item.min_stock.toString(),
                 itemUnit: item.unit,
-                itemSupplier: item.supplier,
-                itemImageUrl: item.imageUrl,
-                isOrdered: item.isOrdered,
-                imageFile: null,
+                itemSupplierId: item.supplier_id ? item.supplier_id.toString() : "",
+                itemImageUrl: item.image_url,
+                isOrdered: item.is_ordered === 1,
+                imageFile: null
             };
         }
     }, [item]);
 
-    const normalizeFraction = (input) => {
-        if (/^\d+\s+\d+\/\d+$/.test(input)) {
-            const [whole, fraction] = input.split(/\s+/);
-            const [numerator, denominator] = fraction.split('/').map(Number);
-
-            const totalNumerator = parseInt(whole, 10) * denominator + numerator;
-            const newWhole = Math.floor(totalNumerator / denominator);
-            const newNumerator = totalNumerator % denominator;
-
-            if (newNumerator === 0) {
-                return `${newWhole}`;
-            } else {
-                return `${newWhole} ${newNumerator}/${denominator}`;
-            }
-        }
-
-        if (/^\d+\/\d+$/.test(input)) {
-            const [numerator, denominator] = input.split('/').map(Number);
-            const newWhole = Math.floor(numerator / denominator);
-            const newNumerator = numerator % denominator;
-
-            if (newWhole === 0) {
-                return `${newNumerator}/${denominator}`;
-            } else if (newNumerator === 0) {
-                return `${newWhole}`;
-            } else {
-                return `${newWhole} ${newNumerator}/${denominator}`;
-            }
-        }
-
-        return input;
-    };
-
     const parseFractionalQuantity = (input) => {
-        if (typeof input === 'number') return input;
-
         input = input.trim();
-
         if (input.startsWith('-')) {
             return NaN;
         }
@@ -110,15 +77,38 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
         return NaN;
     };
 
-    const calculateStatus = (stock, minStock, isOrdered) => {
-        if (isOrdered) return "Pedido";
-        if (stock >= minStock) return "Suficiente";
-        if (stock >= minStock * 0.15) return "Escaso";
-        return "Agotado";
-    };
-
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Validaciones
+        if (!itemName.trim()) {
+            alert("El nombre del artículo es requerido.");
+            return;
+        }
+        if (!itemCategoryId) {
+            alert("La categoría es requerida.");
+            return;
+        }
+        if (!itemBrandId) {
+            alert("La marca es requerida.");
+            return;
+        }
+        if (!itemAreaId) {
+            alert("El área es requerida.");
+            return;
+        }
+        if (!itemStock.trim()) {
+            alert("El stock actual es requerido.");
+            return;
+        }
+        if (!itemMinStock.trim()) {
+            alert("El stock mínimo es requerido.");
+            return;
+        }
+        if (!itemSupplierId) {
+            alert("El proveedor es requerido.");
+            return;
+        }
 
         const stockValue = parseFractionalQuantity(itemStock);
         const minStockValue = parseFractionalQuantity(itemMinStock);
@@ -129,47 +119,61 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
             stockValue < 0 ||
             minStockValue < 0
         ) {
-            alert("Por favor, ingrese cantidades válidas para el stock en el formato correcto.");
+            alert("Por favor, ingrese cantidades válidas para el stock.");
             return;
         }
 
-        const normalizedStock = normalizeFraction(itemStock);
-        const normalizedMinStock = normalizeFraction(itemMinStock);
-
-        const status = calculateStatus(stockValue, minStockValue, isOrdered);
-
-        const updatedItem = {
-            ...item,
+        const body = {
             name: itemName,
-            category: itemCategory,
-            brand: itemBrand,
-            area: itemArea,
+            area_id: parseInt(itemAreaId, 10),
+            brand_id: parseInt(itemBrandId, 10),
+            category_id: parseInt(itemCategoryId, 10),
+            supplier_id: parseInt(itemSupplierId, 10),
             stock: stockValue,
-            minStock: minStockValue,
+            min_stock: minStockValue,
             unit: itemUnit,
-            supplier: itemSupplier,
-            imageUrl: imageFile ? URL.createObjectURL(imageFile) : itemImageUrl,
-            status,
-            isOrdered,
-            originalStock: normalizedStock,
-            originalMinStock: normalizedMinStock,
+            image_url: itemImageUrl,
+            is_ordered: isOrdered ? 1 : 0
         };
 
-        onUpdateItem(updatedItem);
-        onClose();
+        try {
+            const response = await fetch(`${baseUrl}/articles/${item.id}`, {
+                method: 'PUT',
+                headers,
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("Error al actualizar artículo:", errorData);
+                alert("Error al actualizar el artículo");
+                return;
+            }
+
+            const updatedItem = await response.json();
+            // Mantener el formato original ingresado por el usuario
+            updatedItem.originalStockInput = itemStock;
+            updatedItem.originalMinStockInput = itemMinStock;
+
+            onUpdateItem(updatedItem);
+            onClose();
+        } catch (err) {
+            console.error("Error al conectar con el servidor:", err);
+            alert("Error de conexión");
+        }
     };
 
     const handleClose = () => {
         const initialValues = initialValuesRef.current;
         const hasChanges =
             itemName !== initialValues.itemName ||
-            itemCategory !== initialValues.itemCategory ||
-            itemBrand !== initialValues.itemBrand ||
-            itemArea !== initialValues.itemArea ||
+            itemCategoryId !== initialValues.itemCategoryId ||
+            itemBrandId !== initialValues.itemBrandId ||
+            itemAreaId !== initialValues.itemAreaId ||
             itemStock !== initialValues.itemStock ||
             itemMinStock !== initialValues.itemMinStock ||
             itemUnit !== initialValues.itemUnit ||
-            itemSupplier !== initialValues.itemSupplier ||
+            itemSupplierId !== initialValues.itemSupplierId ||
             itemImageUrl !== initialValues.itemImageUrl ||
             isOrdered !== initialValues.isOrdered ||
             imageFile !== initialValues.imageFile;
@@ -191,7 +195,7 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
 
     return (
         <>
-              {show && (
+            {show && (
                 <motion.div
                     onClick={handleClose}
                     className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
@@ -235,39 +239,37 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
 
                                 <label>Categoría</label>
                                 <select
-                                    value={itemCategory}
-                                    onChange={(e) => setItemCategory(e.target.value)}
+                                    value={itemCategoryId}
+                                    onChange={(e) => setItemCategoryId(e.target.value)}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 >
                                     <option value="">Seleccione una categoría</option>
-                                    {categories.map((category, index) => (
-                                        <option key={index} value={category}>{category}</option>
+                                    {categories.map((cat) => (
+                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
                                     ))}
                                 </select>
 
-                                {/* Marca */}
                                 <label>Marca</label>
                                 <select
-                                    value={itemBrand}
-                                    onChange={(e) => setItemBrand(e.target.value)}
+                                    value={itemBrandId}
+                                    onChange={(e) => setItemBrandId(e.target.value)}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 >
                                     <option value="">Seleccione una marca</option>
-                                    {brands.map((brand, index) => (
-                                        <option key={index} value={brand}>{brand}</option>
+                                    {brands.map((b) => (
+                                        <option key={b.id} value={b.id}>{b.name}</option>
                                     ))}
                                 </select>
 
-                                {/* Área */}
                                 <label>Área</label>
                                 <select
-                                    value={itemArea}
-                                    onChange={(e) => setItemArea(e.target.value)}
+                                    value={itemAreaId}
+                                    onChange={(e) => setItemAreaId(e.target.value)}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 >
                                     <option value="">Seleccione un área</option>
-                                    {areas.map((area, index) => (
-                                        <option key={index} value={area}>{area}</option>
+                                    {areas.map((a) => (
+                                        <option key={a.id} value={a.id}>{a.name}</option>
                                     ))}
                                 </select>
 
@@ -277,11 +279,11 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
                                     onChange={(e) => setItemUnit(e.target.value)}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 >
-                                    <option value="pieza">Pieza (pz o pzs)</option>
+                                    <option value="pieza">Pieza</option>
                                     <option value="bote">Bote</option>
                                     <option value="bolsa">Bolsa</option>
                                     <option value="barra">Barra</option>
-                                    <option value="kg">Kilogramo (kg)</option>
+                                    <option value="kg">Kilogramo</option>
                                     <option value="litro">Litro</option>
                                     <option value="caja">Caja</option>
                                     <option value="paquete">Paquete</option>
@@ -291,13 +293,13 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
                                     <option value="mililitro">Mililitro</option>
                                     <option value="rollo">Rollo</option>
                                 </select>
+
                                 <label>Stock Actual</label>
                                 <input
                                     type="text"
                                     placeholder={`Stock Actual (${itemUnit})`}
                                     value={itemStock}
                                     onChange={(e) => {
-                                        // Permitir solo dígitos, espacios, barras y puntos decimales
                                         const value = e.target.value.replace(/[^0-9\s\/\.]/g, '');
                                         setItemStock(value);
                                     }}
@@ -309,23 +311,21 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
                                     placeholder={`Stock Mínimo (${itemUnit})`}
                                     value={itemMinStock}
                                     onChange={(e) => {
-                                        // Permitir solo dígitos, espacios, barras y puntos decimales
                                         const value = e.target.value.replace(/[^0-9\s\/\.]/g, '');
                                         setItemMinStock(value);
                                     }}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 />
 
-                                {/* Selección de Proveedor */}
                                 <label>Proveedor</label>
                                 <select
-                                    value={itemSupplier}
-                                    onChange={(e) => setItemSupplier(e.target.value)}
+                                    value={itemSupplierId}
+                                    onChange={(e) => setItemSupplierId(e.target.value)}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 >
                                     <option value="">Seleccione un proveedor</option>
-                                    {suppliers.map((supplier, index) => (
-                                        <option key={index} value={supplier}>{supplier}</option>
+                                    {suppliers.map((s) => (
+                                        <option key={s.id} value={s.id}>{s.name}</option>
                                     ))}
                                 </select>
 
@@ -397,12 +397,11 @@ function EditArticleModal({ show, onClose, onUpdateItem, item, categories, suppl
                 </motion.div>
             )}
 
-            {/* Modal de Confirmación */}
             <AnimatePresence>
                 {showConfirmModal && (
                     <motion.div
                         onClick={() => setShowConfirmModal(false)}
-                        className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+                        className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[60]"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}

@@ -4,48 +4,42 @@ import { motion, AnimatePresence } from 'framer-motion';
 import CreateArticleModal from '../components/Inventory/CreateArticleModal';
 
 function Inventory() {
-    // Función para actualizar un artículo
-    const handleUpdateItem = (updatedItem) => {
-        const updatedStatus = calculateStatus(updatedItem.stock, updatedItem.minStock, updatedItem.isOrdered);
-        const itemWithUpdatedStatus = { ...updatedItem, status: updatedStatus };
+    const token = '1|QTIkgN5x4yeJJ3SszDakmxhYy7cFDt6KNBPAwTC5'; // Ajusta tu token
+    const baseUrl = 'http://127.0.0.1:8000/api';
 
-        setInventoryItems(inventoryItems.map(item =>
-            item.id === itemWithUpdatedStatus.id ? itemWithUpdatedStatus : item
-        ));
-    };
+    const [inventoryItems, setInventoryItems] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [suppliers, setSuppliers] = useState([]);
+    const [brands, setBrands] = useState([]);
+    const [areas, setAreas] = useState([]);
 
     const [showScrollTopButton, setShowScrollTopButton] = useState(false);
+    const [categoryFilter, setCategoryFilter] = useState("Todas las categorías");
+    const [statusFilter, setStatusFilter] = useState("Todos");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [isAscending, setIsAscending] = useState(true);
+    const [sortParameter, setSortParameter] = useState("name");
+    const [showExportModal, setShowExportModal] = useState(false);
+    const [showCreateArticleModal, setShowCreateArticleModal] = useState(false);
+
+    const headers = {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+    };
+
     useEffect(() => {
         const handleScroll = () => {
             setShowScrollTopButton(window.scrollY > 200);
         };
 
         window.addEventListener('scroll', handleScroll);
-
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
-
-    const [categoryFilter, setCategoryFilter] = useState("Todas las categorías");
-    const [statusFilter, setStatusFilter] = useState("Todos");
-    const [searchTerm, setSearchTerm] = useState("");
-    const [isAscending, setIsAscending] = useState(true);
-    const [sortParameter, setSortParameter] = useState("name");
-
-    // Para crear artículo
-    const [showExportModal, setShowExportModal] = useState(false);
-    const [showCreateArticleModal, setShowCreateArticleModal] = useState(false);
-
-    // Handle form submission
-    const handleAddItem = (newItem) => {
-        setInventoryItems([...inventoryItems, newItem]);
-    };
-
-    const toggleExportModal = () => setShowExportModal(!showExportModal);
-    const toggleCreateArticleModal = () => setShowCreateArticleModal(!showCreateArticleModal);
 
     const calculateStatus = (stock, minStock, isOrdered) => {
         if (isOrdered) return "Pedido";
@@ -54,84 +48,108 @@ function Inventory() {
         return "Agotado";
     };
 
-    const [inventoryItems, setInventoryItems] = useState([]);
-
-    const [categories, setCategories] = useState([]);
-    const [suppliers, setSuppliers] = useState([]);
-    const [brands, setBrands] = useState([]);
-    const [areas, setAreas] = useState([]);
-
     useEffect(() => {
-        // Obtener los datos del inventario
-        fetch('/data/InventoryData.json')
-            .then(response => response.json())
-            .then(data => {
-                const itemsWithStatus = data.map(item => ({
-                    ...item,
-                    status: calculateStatus(item.stock, item.minStock, item.isOrdered)
-                }));
+        async function fetchData() {
+            try {
+                const [articlesRes, categoriesRes, suppliersRes, brandsRes, areasRes] = await Promise.all([
+                    fetch(`${baseUrl}/articles`, { headers }),
+                    fetch(`${baseUrl}/categories`, { headers }),
+                    fetch(`${baseUrl}/suppliers`, { headers }),
+                    fetch(`${baseUrl}/brands`, { headers }),
+                    fetch(`${baseUrl}/areas`, { headers })
+                ]);
+
+                const articlesData = await articlesRes.json();
+                const categoriesData = await categoriesRes.json();
+                const suppliersData = await suppliersRes.json();
+                const brandsData = await brandsRes.json();
+                const areasData = await areasRes.json();
+
+                const itemsWithStatus = articlesData.map(item => {
+                    const status = calculateStatus(item.stock, item.min_stock, item.is_ordered);
+                    return {
+                        ...item,
+                        status,
+                        // Al cargar desde backend no tenemos fracción original, así que no definimos originalStockInput y originalMinStockInput
+                    };
+                });
+
                 setInventoryItems(itemsWithStatus);
-            })
-            .catch(error => console.error('Error al cargar los datos del inventario:', error));
+                setCategories(categoriesData);
+                setSuppliers(suppliersData);
+                setBrands(brandsData);
+                setAreas(areasData);
+            } catch (error) {
+                console.error('Error al cargar datos:', error);
+            }
+        }
 
-        // Obtener las categorías
-        fetch('/data/CategoriesData.json')
-            .then(response => response.json())
-            .then(data => {
-                setCategories(data);
-            })
-            .catch(error => console.error('Error al cargar las categorías:', error));
-
-        // Obtener los proveedores
-        fetch('/data/SuppliersData.json')
-            .then(response => response.json())
-            .then(data => {
-                setSuppliers(data);
-            })
-            .catch(error => console.error('Error al cargar los proveedores:', error));
-
-        // Obtener las marcas
-        fetch('/data/BrandsData.json')
-            .then(response => response.json())
-            .then(data => {
-                setBrands(data);
-            })
-            .catch(error => console.error('Error al cargar las marcas:', error));
-
-        // Obtener las áreas
-        fetch('/data/AreasData.json')
-            .then(response => response.json())
-            .then(data => {
-                setAreas(data);
-            })
-            .catch(error => console.error('Error al cargar las áreas:', error));
+        fetchData();
     }, []);
 
-    // Filtra y ordena los productos de inventario según los filtros activos
+    const handleAddItem = (newItem) => {
+        const status = calculateStatus(newItem.stock, newItem.min_stock, newItem.is_ordered);
+        // Como el artículo se acaba de crear desde el frontend, si el usuario ingresó fracción, venía en el body del modal
+        // Si quieres preservar la fracción:
+        // Suponiendo que CreateArticleModal asigna newItem.originalStockInput y newItem.originalMinStockInput si el usuario ingreso fracción.
+        setInventoryItems([...inventoryItems, { ...newItem, status }]);
+    };
+
+    const handleUpdateItem = (updatedItem) => {
+        const updatedStatus = calculateStatus(updatedItem.stock, updatedItem.min_stock, updatedItem.is_ordered);
+        const itemWithUpdatedStatus = { ...updatedItem, status: updatedStatus };
+
+        setInventoryItems(inventoryItems.map(item =>
+            item.id === itemWithUpdatedStatus.id ? itemWithUpdatedStatus : item
+        ));
+    };
+
+    const toggleExportModal = () => setShowExportModal(!showExportModal);
+    const toggleCreateArticleModal = () => setShowCreateArticleModal(!showCreateArticleModal);
+
     const filteredItems = inventoryItems
         .filter((item) => {
-            const matchesCategory = categoryFilter === "Todas las categorías" || item.category === categoryFilter;
+            const categoryName = item.category ? item.category.name : '';
+            const matchesCategory = categoryFilter === "Todas las categorías" || categoryName === categoryFilter;
             const matchesStatus = statusFilter === "Todos" || item.status === statusFilter;
-            const matchesSearch = item[sortParameter].toString().toLowerCase().includes(searchTerm.toLowerCase());
+
+            const fieldValue = (() => {
+                if (sortParameter === 'category') return item.category?.name || '';
+                if (sortParameter === 'supplier') return item.supplier?.name || '';
+                if (sortParameter === 'name') return item.name || '';
+                return item.name || '';
+            })().toString().toLowerCase();
+
+            const matchesSearch = fieldValue.includes(searchTerm.toLowerCase());
             return matchesCategory && matchesStatus && matchesSearch;
         })
         .sort((a, b) => {
-            const fieldA = a[sortParameter];
-            const fieldB = b[sortParameter];
+            const fieldA = (() => {
+                if (sortParameter === 'category') return a.category?.name || '';
+                if (sortParameter === 'supplier') return a.supplier?.name || '';
+                if (sortParameter === 'name') return a.name || '';
+                return a.name || '';
+            })();
+
+            const fieldB = (() => {
+                if (sortParameter === 'category') return b.category?.name || '';
+                if (sortParameter === 'supplier') return b.supplier?.name || '';
+                if (sortParameter === 'name') return b.name || '';
+                return b.name || '';
+            })();
 
             if (fieldA < fieldB) return isAscending ? -1 : 1;
             if (fieldA > fieldB) return isAscending ? 1 : -1;
             return 0;
         });
 
-    // Cambia el orden de A-Z a Z-A y viceversa
     const toggleSortOrder = () => setIsAscending(!isAscending);
 
     return (
         <div className="px-4 pb-24">
-            {/* Botón de "Subir" */}
             {showScrollTopButton && (
                 <motion.button
+                    style={{ zIndex: 49 }}
                     onClick={scrollToTop}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
@@ -141,14 +159,12 @@ function Inventory() {
                 </motion.button>
             )}
 
-            {/* Encabezado de navegación */}
             <nav className="text-sm text-gray-500 mb-4">
                 <a href="#" className="hover:underline">Home</a>
                 <span className="mx-2">/</span>
                 <a href="#" className="hover:underline">Inventario</a>
             </nav>
 
-            {/* Contenedor del título y botones de acción */}
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl font-semibold">Inventario</h1>
                 <div className="flex space-x-2">
@@ -179,9 +195,7 @@ function Inventory() {
                 </div>
             </div>
 
-            {/* Campo de búsqueda y filtros */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:space-x-4 mb-4">
-                {/* Campo de búsqueda */}
                 <div className="mb-4 lg:mb-0 lg:flex-1">
                     <input
                         type="text"
@@ -191,8 +205,6 @@ function Inventory() {
                         className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                     />
                 </div>
-
-                {/* Filtros */}
                 <div className="flex flex-col sm:flex-row sm:space-x-2 lg:flex-1">
                     <select
                         className="border-gray-300 text-gray-500 rounded-md shadow-sm py-1 px-2 mb-2 sm:mb-0 w-full sm:w-1/2"
@@ -200,12 +212,11 @@ function Inventory() {
                         onChange={(e) => setCategoryFilter(e.target.value)}
                     >
                         <option>Todas las categorías</option>
-                        {categories.map((category, index) => (
-                            <option key={index} value={category}>{category}</option>
+                        {categories.map((category) => (
+                            <option key={category.id} value={category.name}>{category.name}</option>
                         ))}
                     </select>
 
-                    {/* Select para seleccionar el criterio de ordenación */}
                     <div className="flex items-center space-x-2 w-full sm:w-1/2">
                         <select
                             className="border-gray-300 text-gray-500 rounded-md shadow-sm py-1 px-2 w-full"
@@ -228,7 +239,6 @@ function Inventory() {
                 </div>
             </div>
 
-            {/* Filtros por estado de inventario */}
             <div
                 id="inventory-filters"
                 className="flex gap-2 mb-4 overflow-x-auto"
@@ -270,12 +280,11 @@ function Inventory() {
                 </button>
             </div>
 
-            {/* Lista de productos en inventario */}
             <AnimatePresence>
                 <ul className="space-y-4">
-                    {filteredItems.map((item, index) => (
+                    {filteredItems.map((item) => (
                         <motion.div
-                            key={index}
+                            key={item.id}
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 10 }}
@@ -288,13 +297,14 @@ function Inventory() {
                                 suppliers={suppliers}
                                 brands={brands}
                                 areas={areas}
+                                token={token}
+                                baseUrl={baseUrl}
                             />
                         </motion.div>
                     ))}
                 </ul>
             </AnimatePresence>
 
-            {/* Modales */}
             <AnimatePresence>
                 {showExportModal && (
                     <motion.div
@@ -322,7 +332,6 @@ function Inventory() {
                 )}
             </AnimatePresence>
 
-            {/* Modal para crear artículo */}
             <AnimatePresence>
                 {showCreateArticleModal && (
                     <CreateArticleModal
@@ -333,6 +342,8 @@ function Inventory() {
                         suppliers={suppliers}
                         brands={brands}
                         areas={areas}
+                        token={token}
+                        baseUrl={baseUrl}
                     />
                 )}
             </AnimatePresence>

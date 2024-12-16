@@ -1,120 +1,105 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
-function UpdateStockModal({ show, onClose, item, onUpdateItem }) {
-    const [itemStock, setItemStock] = useState(""); // Valor ingresado como texto (puede ser fracción o decimal)
+function UpdateStockModal({ show, onClose, item, onUpdateItem, token, baseUrl }) {
+    const [itemStock, setItemStock] = useState("");
     const [isOrdered, setIsOrdered] = useState(false);
+
+    const headers = {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+    };
 
     useEffect(() => {
         if (item) {
-            const normalizedStock = normalizeFraction(item.originalStock || item.stock.toString());
-            setItemStock(normalizedStock); // Mostrar el valor normalizado
-            setIsOrdered(item.isOrdered);
+            // Si tiene originalStockInput, lo usamos, sino usamos el stock del backend
+            setItemStock(item.originalStockInput ?? item.stock.toString());
+            setIsOrdered(item.is_ordered === 1);
         }
     }, [item]);
 
-    const normalizeFraction = (input) => {
-        // Verificar si es un número mixto como '3 4/3'
-        if (/^\d+\s+\d+\/\d+$/.test(input)) {
-            const [whole, fraction] = input.split(/\s+/);
-            const [numerator, denominator] = fraction.split('/').map(Number);
-    
-            const totalNumerator = parseInt(whole, 10) * denominator + numerator; // Numerador total
-            const newWhole = Math.floor(totalNumerator / denominator); // Nuevo entero
-            const newNumerator = totalNumerator % denominator; // Nuevo numerador sobrante
-    
-            if (newNumerator === 0) {
-                return `${newWhole}`; // Es un número entero
-            } else {
-                return `${newWhole} ${newNumerator}/${denominator}`; // Número mixto normalizado
-            }
-        }
-    
-        // Verificar si es una fracción como '4/3'
-        if (/^\d+\/\d+$/.test(input)) {
-            const [numerator, denominator] = input.split('/').map(Number);
-    
-            const newWhole = Math.floor(numerator / denominator); // Entero
-            const newNumerator = numerator % denominator; // Numerador sobrante
-    
-            if (newWhole === 0) {
-                return `${newNumerator}/${denominator}`; // Fracción propia
-            } else if (newNumerator === 0) {
-                return `${newWhole}`; // Es un número entero
-            } else {
-                return `${newWhole} ${newNumerator}/${denominator}`; // Número mixto
-            }
-        }
-    
-        return input; // Si no aplica, devolver el input original
-    };
-    
-
     const parseFractionalQuantity = (input) => {
-        if (typeof input === "number") return input;
-
         input = input.trim();
-
-        // No permitir números negativos
         if (input.startsWith("-")) {
             return NaN;
         }
 
-        // Verificar si es un número decimal
         if (/^\d+(\.\d+)?$/.test(input)) {
             return parseFloat(input);
         }
 
-        // Verificar si es una fracción como '1/2'
         if (/^\d+\/\d+$/.test(input)) {
             const [numerator, denominator] = input.split("/").map(Number);
             return numerator / denominator;
         }
 
-        // Verificar si es un número mixto como '1 1/2'
         if (/^\d+\s+\d+\/\d+$/.test(input)) {
             const [whole, fraction] = input.split(/\s+/);
             const [numerator, denominator] = fraction.split("/").map(Number);
             return parseInt(whole, 10) + numerator / denominator;
         }
 
-        // Si no coincide con ningún patrón, retornar NaN
         return NaN;
     };
 
-    const calculateStatus = (stock, minStock, isOrdered) => {
-        if (isOrdered) return "Pedido";
-        if (stock >= minStock) return "Suficiente";
-        if (stock >= minStock * 0.15) return "Escaso";
-        return "Agotado";
-    };
-
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-    
-        const stockValue = parseFractionalQuantity(itemStock);
-    
-        if (isNaN(stockValue) || stockValue < 0) {
-            alert("Por favor, ingrese una cantidad válida para el stock en el formato correcto.");
+
+        if (!itemStock.trim()) {
+            alert("El stock actual es requerido.");
             return;
         }
-    
-        const normalizedStock = normalizeFraction(itemStock); // Normalizamos la fracción
-    
-        const status = calculateStatus(stockValue, item.minStock, isOrdered);
-    
-        const updatedItem = {
-            ...item,
-            stock: stockValue, // Valor decimal para cálculos internos
-            originalStock: normalizedStock, // Valor normalizado
-            isOrdered,
-            status,
+
+        const stockValue = parseFractionalQuantity(itemStock);
+
+        if (isNaN(stockValue) || stockValue < 0) {
+            alert("Por favor, ingrese una cantidad válida para el stock.");
+            return;
+        }
+
+        const body = {
+            name: item.name,
+            area_id: item.area_id,
+            brand_id: item.brand_id,
+            category_id: item.category_id,
+            supplier_id: item.supplier_id,
+            stock: stockValue,
+            min_stock: item.min_stock,
+            unit: item.unit,
+            image_url: item.image_url,
+            is_ordered: isOrdered ? 1 : 0
         };
-    
-        onUpdateItem(updatedItem);
-        onClose();
+
+        try {
+            const response = await fetch(`${baseUrl}/articles/${item.id}`, {
+                method: 'PUT',
+                headers,
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("Error al actualizar stock:", errorData);
+                alert("Error al actualizar el stock");
+                return;
+            }
+
+            const updatedItem = await response.json();
+            // Mantenemos el formato original ingresado por el usuario
+            updatedItem.originalStockInput = itemStock;
+            // minStock no se edita aquí, así que si existe originalMinStockInput lo conservamos
+            if (item.originalMinStockInput !== undefined) {
+                updatedItem.originalMinStockInput = item.originalMinStockInput;
+            }
+
+            onUpdateItem(updatedItem);
+            onClose();
+        } catch (err) {
+            console.error("Error al conectar con el servidor:", err);
+            alert("Error de conexión");
+        }
     };
-    
 
     const handleClose = () => {
         onClose();
@@ -162,22 +147,19 @@ function UpdateStockModal({ show, onClose, item, onUpdateItem }) {
                         <label>Artículo: {item.name}</label>
 
                         <div className="flex w-full items-center gap-2">
-                        <label>Stock Actual: </label>
-                            
+                            <label>Stock Actual: </label>
                             <input
-                            type="text"
-                            placeholder={`Stock Actual (${item.unit})`}
-                            value={itemStock}
-                            onChange={(e) => {
-                                // Permitir solo dígitos, espacios, barras y puntos decimales
-                                const value = e.target.value.replace(/[^0-9\s\/\.]/g, "");
-                                setItemStock(value);
-                            }}
-                            className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-16"
-                        />
-
-                        <b>{item.unit}</b></div>
-
+                                type="text"
+                                placeholder={`Stock Actual (${item.unit})`}
+                                value={itemStock}
+                                onChange={(e) => {
+                                    const value = e.target.value.replace(/[^0-9\s\/\.]/g, "");
+                                    setItemStock(value);
+                                }}
+                                className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-16"
+                            />
+                            <b>{item.unit}</b>
+                        </div>
 
                         <label className="flex items-center">
                             <input

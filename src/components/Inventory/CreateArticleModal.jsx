@@ -1,144 +1,121 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, brands, areas }) {
+function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, brands, areas, token, baseUrl }) {
     const [newItemName, setNewItemName] = useState("");
-    const [newItemCategory, setNewItemCategory] = useState("");
-    const [newItemBrand, setNewItemBrand] = useState("");
-    const [newItemArea, setNewItemArea] = useState("");
+    const [newItemCategoryId, setNewItemCategoryId] = useState("");
+    const [newItemBrandId, setNewItemBrandId] = useState("");
+    const [newItemAreaId, setNewItemAreaId] = useState("");
     const [newItemStock, setNewItemStock] = useState("");
     const [newItemMinStock, setNewItemMinStock] = useState("");
     const [newItemUnit, setNewItemUnit] = useState("pieza");
-    const [newItemSupplier, setNewItemSupplier] = useState("");
+    const [newItemSupplierId, setNewItemSupplierId] = useState("");
     const [newItemImageUrl, setNewItemImageUrl] = useState("");
     const [isOrdered, setIsOrdered] = useState(false);
     const [imageFile, setImageFile] = useState(null);
     const [activeTab, setActiveTab] = useState("url");
     const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-    const calculateStatus = (stock, minStock, isOrdered) => {
-        if (isOrdered) return "Pedido";
-        if (stock >= minStock) return "Suficiente";
-        if (stock >= minStock * 0.15) return "Escaso";
-        return "Agotado";
+    const headers = {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
     };
 
     const parseFractionalQuantity = (input) => {
         if (typeof input === 'number') return input;
 
         input = input.trim();
-
-        // No permitir números negativos
         if (input.startsWith('-')) {
             return NaN;
         }
 
-        // Verificar si es un número decimal
         if (/^\d+(\.\d+)?$/.test(input)) {
             return parseFloat(input);
         }
 
-        // Verificar si es una fracción como '1/2'
         if (/^\d+\/\d+$/.test(input)) {
             const [numerator, denominator] = input.split('/').map(Number);
             return numerator / denominator;
         }
 
-        // Verificar si es un número mixto como '1 1/2'
         if (/^\d+\s+\d+\/\d+$/.test(input)) {
             const [whole, fraction] = input.split(/\s+/);
             const [numerator, denominator] = fraction.split('/').map(Number);
-            return parseInt(whole, 10) + numerator / denominator;
+            return parseInt(whole, 10) + (numerator / denominator);
         }
 
-        // Si no coincide con ningún patrón, retornar NaN
         return NaN;
     };
 
-    const normalizeFraction = (input) => {
-        if (/^\d+\s+\d+\/\d+$/.test(input)) {
-            const [whole, fraction] = input.split(/\s+/);
-            const [numerator, denominator] = fraction.split('/').map(Number);
-
-            const totalNumerator = parseInt(whole, 10) * denominator + numerator;
-            const newWhole = Math.floor(totalNumerator / denominator);
-            const newNumerator = totalNumerator % denominator;
-
-            if (newNumerator === 0) {
-                return `${newWhole}`;
-            } else {
-                return `${newWhole} ${newNumerator}/${denominator}`;
-            }
-        }
-
-        if (/^\d+\/\d+$/.test(input)) {
-            const [numerator, denominator] = input.split('/').map(Number);
-            const newWhole = Math.floor(numerator / denominator);
-            const newNumerator = numerator % denominator;
-
-            if (newWhole === 0) {
-                return `${newNumerator}/${denominator}`;
-            } else if (newNumerator === 0) {
-                return `${newWhole}`;
-            } else {
-                return `${newWhole} ${newNumerator}/${denominator}`;
-            }
-        }
-
-        return input;
-    };
-
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        const stockValue = parseFractionalQuantity(newItemStock);
-        const minStockValue = parseFractionalQuantity(newItemMinStock);
 
-        if (
-            isNaN(stockValue) ||
-            isNaN(minStockValue) ||
-            stockValue < 0 ||
-            minStockValue < 0
-        ) {
-            alert("Por favor, ingrese cantidades válidas para el stock en el formato correcto.");
+        if (!newItemName.trim() || !newItemCategoryId || !newItemBrandId || !newItemAreaId || !newItemStock.trim() || !newItemMinStock.trim() || !newItemSupplierId) {
+            alert("Todos los campos requeridos deben completarse.");
             return;
         }
 
-        const normalizedStock = normalizeFraction(newItemStock);
-        const normalizedMinStock = normalizeFraction(newItemMinStock);
+        const stockValue = parseFractionalQuantity(newItemStock);
+        const minStockValue = parseFractionalQuantity(newItemMinStock);
 
-        const status = calculateStatus(stockValue, minStockValue, isOrdered);
+        if (isNaN(stockValue) || isNaN(minStockValue) || stockValue < 0 || minStockValue < 0) {
+            alert("Por favor, ingrese cantidades válidas para el stock.");
+            return;
+        }
 
-        const newItem = {
-            id: Date.now() + Math.floor(Math.random() * 1000),
+        const body = {
             name: newItemName,
-            category: newItemCategory,
-            brand: newItemBrand,
-            area: newItemArea,
+            area_id: parseInt(newItemAreaId, 10),
+            brand_id: parseInt(newItemBrandId, 10),
+            category_id: parseInt(newItemCategoryId, 10),
+            supplier_id: parseInt(newItemSupplierId, 10),
             stock: stockValue,
-            minStock: minStockValue,
+            min_stock: minStockValue,
             unit: newItemUnit,
-            supplier: newItemSupplier,
-            imageUrl: imageFile ? URL.createObjectURL(imageFile) : newItemImageUrl,
-            status,
-            isOrdered,
-            originalStock: normalizedStock,
-            originalMinStock: normalizedMinStock
+            image_url: newItemImageUrl,
+            is_ordered: isOrdered ? 1 : 0
         };
 
-        onAddItem(newItem);
-        resetForm();
-        onClose();
+        try {
+            const response = await fetch(`${baseUrl}/articles`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("Error al agregar artículo:", errorData);
+                alert("Error al agregar el artículo");
+                return;
+            }
+
+            const createdItem = await response.json();
+            // Guardamos la fracción original si es que el usuario ingreso fracción
+            // Aquí asumimos que siempre que el usuario haya ingresado algo distinto a un número puro se trata de una fracción
+            // Puedes refinar esta lógica.
+            createdItem.originalStockInput = newItemStock.match(/[^0-9\.]/) ? newItemStock : null;
+            createdItem.originalMinStockInput = newItemMinStock.match(/[^0-9\.]/) ? newItemMinStock : null;
+
+            onAddItem(createdItem);
+            resetForm();
+            onClose();
+        } catch (err) {
+            console.error("Error al conectar con el servidor:", err);
+            alert("Error de conexión");
+        }
     };
 
     const resetForm = () => {
         setNewItemName("");
-        setNewItemCategory("");
-        setNewItemBrand("");
-        setNewItemArea("");
+        setNewItemCategoryId("");
+        setNewItemBrandId("");
+        setNewItemAreaId("");
         setNewItemStock("");
         setNewItemMinStock("");
         setNewItemUnit("pieza");
-        setNewItemSupplier("");
+        setNewItemSupplierId("");
         setNewItemImageUrl("");
         setImageFile(null);
         setIsOrdered(false);
@@ -148,13 +125,13 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
     const handleClose = () => {
         if (
             newItemName ||
-            newItemCategory ||
-            newItemBrand ||
-            newItemArea ||
+            newItemCategoryId ||
+            newItemBrandId ||
+            newItemAreaId ||
             newItemStock ||
             newItemMinStock ||
             newItemUnit !== "pieza" ||
-            newItemSupplier ||
+            newItemSupplierId ||
             newItemImageUrl ||
             imageFile
         ) {
@@ -206,7 +183,7 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
                         <h2 className="text-xl font-semibold mb-4 text-center">Crear Artículo</h2>
                         <form onSubmit={handleSubmit}>
                             <div className="flex flex-col space-y-2">
-                                <label>Nombre del Artículo</label>
+                                <label>Nombre del Artículo *</label>
                                 <input
                                     type="text"
                                     placeholder="Nombre"
@@ -215,41 +192,39 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 />
 
-                                <label>Categoría</label>
+                                <label>Categoría *</label>
                                 <select
-                                    value={newItemCategory}
-                                    onChange={(e) => setNewItemCategory(e.target.value)}
+                                    value={newItemCategoryId}
+                                    onChange={(e) => setNewItemCategoryId(e.target.value)}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 >
                                     <option value="">Seleccione una categoría</option>
-                                    {categories.map((category, index) => (
-                                        <option key={index} value={category}>{category}</option>
+                                    {categories.map((cat) => (
+                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
                                     ))}
                                 </select>
 
-                                {/* Marca */}
-                                <label>Marca</label>
+                                <label>Marca *</label>
                                 <select
-                                    value={newItemBrand}
-                                    onChange={(e) => setNewItemBrand(e.target.value)}
+                                    value={newItemBrandId}
+                                    onChange={(e) => setNewItemBrandId(e.target.value)}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 >
                                     <option value="">Seleccione una marca</option>
-                                    {brands.map((brand, index) => (
-                                        <option key={index} value={brand}>{brand}</option>
+                                    {brands.map((b) => (
+                                        <option key={b.id} value={b.id}>{b.name}</option>
                                     ))}
                                 </select>
 
-                                {/* Área */}
-                                <label>Área</label>
+                                <label>Área *</label>
                                 <select
-                                    value={newItemArea}
-                                    onChange={(e) => setNewItemArea(e.target.value)}
+                                    value={newItemAreaId}
+                                    onChange={(e) => setNewItemAreaId(e.target.value)}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 >
                                     <option value="">Seleccione un área</option>
-                                    {areas.map((area, index) => (
-                                        <option key={index} value={area}>{area}</option>
+                                    {areas.map((a) => (
+                                        <option key={a.id} value={a.id}>{a.name}</option>
                                     ))}
                                 </select>
 
@@ -259,11 +234,11 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
                                     onChange={(e) => setNewItemUnit(e.target.value)}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 >
-                                    <option value="pieza">Pieza (pz o pzs)</option>
+                                    <option value="pieza">Pieza</option>
                                     <option value="bote">Bote</option>
                                     <option value="bolsa">Bolsa</option>
                                     <option value="barra">Barra</option>
-                                    <option value="kg">Kilogramo (kg)</option>
+                                    <option value="kg">Kilogramo</option>
                                     <option value="litro">Litro</option>
                                     <option value="caja">Caja</option>
                                     <option value="paquete">Paquete</option>
@@ -273,41 +248,40 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
                                     <option value="mililitro">Mililitro</option>
                                     <option value="rollo">Rollo</option>
                                 </select>
-                                <label>Stock Actual</label>
+
+                                <label>Stock Actual *</label>
                                 <input
                                     type="text"
                                     placeholder={`Stock Actual (${newItemUnit})`}
                                     value={newItemStock}
                                     onChange={(e) => {
-                                        // Permitir solo dígitos, espacios, barras y puntos decimales
                                         const value = e.target.value.replace(/[^0-9\s\/\.]/g, '');
                                         setNewItemStock(value);
                                     }}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 />
-                                <label>Stock Mínimo</label>
+
+                                <label>Stock Mínimo *</label>
                                 <input
                                     type="text"
                                     placeholder={`Stock Mínimo (${newItemUnit})`}
                                     value={newItemMinStock}
                                     onChange={(e) => {
-                                        // Permitir solo dígitos, espacios, barras y puntos decimales
                                         const value = e.target.value.replace(/[^0-9\s\/\.]/g, '');
                                         setNewItemMinStock(value);
                                     }}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 />
 
-                                {/* Selección de Proveedor */}
-                                <label>Proveedor</label>
+                                <label>Proveedor *</label>
                                 <select
-                                    value={newItemSupplier}
-                                    onChange={(e) => setNewItemSupplier(e.target.value)}
+                                    value={newItemSupplierId}
+                                    onChange={(e) => setNewItemSupplierId(e.target.value)}
                                     className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                 >
                                     <option value="">Seleccione un proveedor</option>
-                                    {suppliers.map((supplier, index) => (
-                                        <option key={index} value={supplier}>{supplier}</option>
+                                    {suppliers.map((s) => (
+                                        <option key={s.id} value={s.id}>{s.name}</option>
                                     ))}
                                 </select>
 
@@ -377,7 +351,6 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
                 </motion.div>
             )}
 
-            {/* Modal de Confirmación */}
             <AnimatePresence>
                 {showConfirmModal && (
                     <motion.div

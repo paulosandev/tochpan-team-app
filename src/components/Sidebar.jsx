@@ -1,16 +1,51 @@
-// src/components/Sidebar.js
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom'
 
-function Sidebar() {
+export default function Sidebar() {
   return (
-    <div className="w-64 bg-gray-800 text-white flex flex-col h-screen p-4">
-      <h2 className="text-2xl font-bold mb-6">Mi Aplicación</h2>
-      <nav className="flex flex-col space-y-4">
-        <Link to="/" className="hover:bg-gray-700 p-2 rounded">Dashboard</Link>
-        <Link to="/inventory" className="hover:bg-gray-700 p-2 rounded">Inventario</Link>
+    <aside className="w-64 bg-white shadow h-screen p-4 hidden md:block">
+      <h2 className="text-2xl font-bold mb-6">Panel</h2>
+      <nav className="space-y-2">
+        <NavLink 
+          to="/" 
+          className={({isActive}) => 
+            `block py-2 px-4 rounded hover:bg-gray-100 ${isActive ? 'bg-gray-200 font-semibold' : ''}`
+          }
+        >
+          Dashboard
+        </NavLink>
+        <NavLink 
+          to="/inventario"
+          className={({isActive}) => 
+            `block py-2 px-4 rounded hover:bg-gray-100 ${isActive ? 'bg-gray-200 font-semibold' : ''}`
+          }
+        >
+          Inventario
+        </NavLink>
+        <NavLink 
+          to="/recetario"
+          className={({isActive}) => 
+            `block py-2 px-4 rounded hover:bg-gray-100 ${isActive ? 'bg-gray-200 font-semibold' : ''}`
+          }
+        >
+          Recetario
+        </NavLink>
+        <NavLink 
+          to="/pendientes"
+          className={({isActive}) => 
+            `block py-2 px-4 rounded hover:bg-gray-100 ${isActive ? 'bg-gray-200 font-semibold' : ''}`
+          }
+        >
+          Pendientes
+        </NavLink>
+        <NavLink 
+          to="/menu"
+          className={({isActive}) => 
+            `block py-2 px-4 rounded hover:bg-gray-100 ${isActive ? 'bg-gray-200 font-semibold' : ''}`
+          }
+        >
+          Menú
+        </NavLink>
       </nav>
-    </div>
-  );
+    </aside>
+  )
 }
-
-export default Sidebar;

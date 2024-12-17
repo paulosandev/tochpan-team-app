@@ -53,10 +53,8 @@ export default function Dashboard() {
 
             {/* Tarjeta módulo: Recetario */}
             <Link to="/recetario" className="bg-white rounded-xl shadow p-4 flex flex-col items-center text-center space-y-2 hover:shadow-lg transition-shadow">
-              <div className="bg-green-100 w-12 h-12 rounded-lg flex items-center justify-center">
-                <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M7 7l10 10M7 17L17 7" />
-                </svg>
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center">
+              <img src="icons/cocina_conejo.svg" alt="Recetario" />
               </div>
               <h3 className="text-sm font-semibold text-gray-800">Recetario</h3>
               <p className="text-xs text-gray-500">Crea y comparte recetas</p>
@@ -64,10 +62,8 @@ export default function Dashboard() {
 
             {/* Tarjeta módulo: Pendientes */}
             <Link to="/pendientes" className="bg-white rounded-xl shadow p-4 flex flex-col items-center text-center space-y-2 hover:shadow-lg transition-shadow">
-              <div className="bg-yellow-100 w-12 h-12 rounded-lg flex items-center justify-center">
-                <svg className="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75h4.5m-2.25 0V5.25M18.75 19.5a8.25 8.25 0 11-16.5 0 8.25 8.25 0 0116.5 0z" />
-                </svg>
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center">
+              <img src="icons/conejo_cafecito.svg" alt="Recetario" />
               </div>
               <h3 className="text-sm font-semibold text-gray-800">Pendientes</h3>
               <p className="text-xs text-gray-500">Gestiona tareas</p>
@@ -75,10 +71,8 @@ export default function Dashboard() {
 
             {/* Tarjeta módulo: Menú */}
             <Link to="/menu" className="bg-white rounded-xl shadow p-4 flex flex-col items-center text-center space-y-2 hover:shadow-lg transition-shadow">
-              <div className="bg-pink-100 w-12 h-12 rounded-lg flex items-center justify-center">
-                <svg className="h-6 w-6 text-pink-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 5h12M9 3v4M6 15h6m-3-3v6m6-9h6M15 12v6" />
-                </svg>
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center">
+              <img src="icons/conejo_cafecito.svg" alt="Recetario" />
               </div>
               <h3 className="text-sm font-semibold text-gray-800">Menú</h3>
               <p className="text-xs text-gray-500">Configura tu menú</p>

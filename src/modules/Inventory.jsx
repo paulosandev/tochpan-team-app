@@ -2,16 +2,26 @@ import React, { useState, useEffect } from 'react';
 import InventoryItem from '../components/Inventory/InventoryItem';
 import { motion, AnimatePresence } from 'framer-motion';
 import CreateArticleModal from '../components/Inventory/CreateArticleModal';
+import { useGlobalData } from '../GlobalDataContext';
 
 function Inventory() {
-    const token = '1|QTIkgN5x4yeJJ3SszDakmxhYy7cFDt6KNBPAwTC5'; // Ajusta tu token
+    const token = '1|QTIkgN5x4yeJJ3SszDakmxhYy7cFDt6KNBPAwTC5'; 
     const baseUrl = 'http://127.0.0.1:8000/api';
 
-    const [inventoryItems, setInventoryItems] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const [suppliers, setSuppliers] = useState([]);
-    const [brands, setBrands] = useState([]);
-    const [areas, setAreas] = useState([]);
+    const {
+        inventoryData, setInventoryData,
+        categoriesData, setCategoriesData,
+        suppliersData, setSuppliersData,
+        brandsData, setBrandsData,
+        areasData, setAreasData
+    } = useGlobalData();
+
+    const [inventoryItems, setInventoryItems] = useState(inventoryData || []);
+    const [categories, setCategories] = useState(categoriesData || []);
+    const [suppliers, setSuppliers] = useState(suppliersData || []);
+    const [brands, setBrands] = useState(brandsData || []);
+    const [areas, setAreas] = useState(areasData || []);
+    const [loading, setLoading] = useState(false);
 
     const [showScrollTopButton, setShowScrollTopButton] = useState(false);
     const [categoryFilter, setCategoryFilter] = useState("Todas las categorías");
@@ -32,7 +42,6 @@ function Inventory() {
         const handleScroll = () => {
             setShowScrollTopButton(window.scrollY > 200);
         };
-
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
@@ -48,60 +57,81 @@ function Inventory() {
         return "Agotado";
     };
 
+    // Solo hacemos fetch si no hay datos cacheados
     useEffect(() => {
         async function fetchData() {
-            try {
-                const [articlesRes, categoriesRes, suppliersRes, brandsRes, areasRes] = await Promise.all([
-                    fetch(`${baseUrl}/articles`, { headers }),
-                    fetch(`${baseUrl}/categories`, { headers }),
-                    fetch(`${baseUrl}/suppliers`, { headers }),
-                    fetch(`${baseUrl}/brands`, { headers }),
-                    fetch(`${baseUrl}/areas`, { headers })
-                ]);
+            if (!inventoryData || !categoriesData || !suppliersData || !brandsData || !areasData) {
+                try {
+                    setLoading(true);
+                    const [articlesRes, categoriesRes, suppliersRes, brandsRes, areasRes] = await Promise.all([
+                        fetch(`${baseUrl}/articles`, { headers }),
+                        fetch(`${baseUrl}/categories`, { headers }),
+                        fetch(`${baseUrl}/suppliers`, { headers }),
+                        fetch(`${baseUrl}/brands`, { headers }),
+                        fetch(`${baseUrl}/areas`, { headers })
+                    ]);
 
-                const articlesData = await articlesRes.json();
-                const categoriesData = await categoriesRes.json();
-                const suppliersData = await suppliersRes.json();
-                const brandsData = await brandsRes.json();
-                const areasData = await areasRes.json();
+                    const articlesData = await articlesRes.json();
+                    const categoriesDataFetched = await categoriesRes.json();
+                    const suppliersDataFetched = await suppliersRes.json();
+                    const brandsDataFetched = await brandsRes.json();
+                    const areasDataFetched = await areasRes.json();
 
-                const itemsWithStatus = articlesData.map(item => {
-                    const status = calculateStatus(item.stock, item.min_stock, item.is_ordered);
-                    return {
-                        ...item,
-                        status,
-                        // Al cargar desde backend no tenemos fracción original, así que no definimos originalStockInput y originalMinStockInput
-                    };
-                });
+                    const itemsWithStatus = articlesData.map(item => {
+                        const status = calculateStatus(item.stock, item.min_stock, item.is_ordered);
+                        return { ...item, status };
+                    });
 
-                setInventoryItems(itemsWithStatus);
+                    setInventoryItems(itemsWithStatus);
+                    setCategories(categoriesDataFetched);
+                    setSuppliers(suppliersDataFetched);
+                    setBrands(brandsDataFetched);
+                    setAreas(areasDataFetched);
+
+                    // Guardar en el contexto global
+                    setInventoryData(itemsWithStatus);
+                    setCategoriesData(categoriesDataFetched);
+                    setSuppliersData(suppliersDataFetched);
+                    setBrandsData(brandsDataFetched);
+                    setAreasData(areasDataFetched);
+
+                } catch (error) {
+                    console.error('Error al cargar datos:', error);
+                } finally {
+                    setLoading(false);
+                }
+            } else {
+                // Si ya tenemos datos cacheados
+                setInventoryItems(inventoryData);
                 setCategories(categoriesData);
                 setSuppliers(suppliersData);
                 setBrands(brandsData);
                 setAreas(areasData);
-            } catch (error) {
-                console.error('Error al cargar datos:', error);
             }
         }
 
         fetchData();
-    }, []);
+    }, [
+        inventoryData, categoriesData, suppliersData, brandsData, areasData,
+        setInventoryData, setCategoriesData, setSuppliersData, setBrandsData, setAreasData
+    ]);
 
     const handleAddItem = (newItem) => {
         const status = calculateStatus(newItem.stock, newItem.min_stock, newItem.is_ordered);
-        // Como el artículo se acaba de crear desde el frontend, si el usuario ingresó fracción, venía en el body del modal
-        // Si quieres preservar la fracción:
-        // Suponiendo que CreateArticleModal asigna newItem.originalStockInput y newItem.originalMinStockInput si el usuario ingreso fracción.
-        setInventoryItems([...inventoryItems, { ...newItem, status }]);
+        const updatedItems = [...inventoryItems, { ...newItem, status }];
+        setInventoryItems(updatedItems);
+        setInventoryData(updatedItems); // Actualizar en contexto
     };
 
     const handleUpdateItem = (updatedItem) => {
         const updatedStatus = calculateStatus(updatedItem.stock, updatedItem.min_stock, updatedItem.is_ordered);
         const itemWithUpdatedStatus = { ...updatedItem, status: updatedStatus };
 
-        setInventoryItems(inventoryItems.map(item =>
+        const updatedItems = inventoryItems.map(item =>
             item.id === itemWithUpdatedStatus.id ? itemWithUpdatedStatus : item
-        ));
+        );
+        setInventoryItems(updatedItems);
+        setInventoryData(updatedItems); // Actualizar en contexto
     };
 
     const toggleExportModal = () => setShowExportModal(!showExportModal);
@@ -144,6 +174,15 @@ function Inventory() {
         });
 
     const toggleSortOrder = () => setIsAscending(!isAscending);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                {/* Aquí puedes poner un spinner animado, un gif o una imagen */}
+                <img src="public\icons\loading_conejo.gif" alt="Cargando..." className="w-20 h-20" />
+            </div>
+        );
+    }
 
     return (
         <div className="px-4 pb-24">

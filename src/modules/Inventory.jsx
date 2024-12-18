@@ -2,26 +2,12 @@ import React, { useState, useEffect } from 'react';
 import InventoryItem from '../components/Inventory/InventoryItem';
 import { motion, AnimatePresence } from 'framer-motion';
 import CreateArticleModal from '../components/Inventory/CreateArticleModal';
-import { useGlobalData } from '../GlobalDataContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 function Inventory() {
     const token = '1|QTIkgN5x4yeJJ3SszDakmxhYy7cFDt6KNBPAwTC5'; 
     const baseUrl = 'http://127.0.0.1:8000/api';
-
-    const {
-        inventoryData, setInventoryData,
-        categoriesData, setCategoriesData,
-        suppliersData, setSuppliersData,
-        brandsData, setBrandsData,
-        areasData, setAreasData
-    } = useGlobalData();
-
-    const [inventoryItems, setInventoryItems] = useState(inventoryData || []);
-    const [categories, setCategories] = useState(categoriesData || []);
-    const [suppliers, setSuppliers] = useState(suppliersData || []);
-    const [brands, setBrands] = useState(brandsData || []);
-    const [areas, setAreas] = useState(areasData || []);
-    const [loading, setLoading] = useState(false);
+    const queryClient = useQueryClient();
 
     const [showScrollTopButton, setShowScrollTopButton] = useState(false);
     const [categoryFilter, setCategoryFilter] = useState("Todas las categorías");
@@ -57,81 +43,142 @@ function Inventory() {
         return "Agotado";
     };
 
-    // Solo hacemos fetch si no hay datos cacheados
-    useEffect(() => {
-        async function fetchData() {
-            if (!inventoryData || !categoriesData || !suppliersData || !brandsData || !areasData) {
-                try {
-                    setLoading(true);
-                    const [articlesRes, categoriesRes, suppliersRes, brandsRes, areasRes] = await Promise.all([
-                        fetch(`${baseUrl}/articles`, { headers }),
-                        fetch(`${baseUrl}/categories`, { headers }),
-                        fetch(`${baseUrl}/suppliers`, { headers }),
-                        fetch(`${baseUrl}/brands`, { headers }),
-                        fetch(`${baseUrl}/areas`, { headers })
-                    ]);
+    // Fetchers para React Query
+    const fetchArticles = async () => {
+        const res = await fetch(`${baseUrl}/articles`, { headers });
+        const data = await res.json();
+        return data.map(item => ({
+            ...item,
+            status: calculateStatus(item.stock, item.min_stock, item.is_ordered)
+        }));
+    };
 
-                    const articlesData = await articlesRes.json();
-                    const categoriesDataFetched = await categoriesRes.json();
-                    const suppliersDataFetched = await suppliersRes.json();
-                    const brandsDataFetched = await brandsRes.json();
-                    const areasDataFetched = await areasRes.json();
+    const fetchCategories = async () => {
+        const res = await fetch(`${baseUrl}/categories`, { headers });
+        return await res.json();
+    };
 
-                    const itemsWithStatus = articlesData.map(item => {
-                        const status = calculateStatus(item.stock, item.min_stock, item.is_ordered);
-                        return { ...item, status };
-                    });
+    const fetchSuppliers = async () => {
+        const res = await fetch(`${baseUrl}/suppliers`, { headers });
+        return await res.json();
+    };
 
-                    setInventoryItems(itemsWithStatus);
-                    setCategories(categoriesDataFetched);
-                    setSuppliers(suppliersDataFetched);
-                    setBrands(brandsDataFetched);
-                    setAreas(areasDataFetched);
+    const fetchBrands = async () => {
+        const res = await fetch(`${baseUrl}/brands`, { headers });
+        return await res.json();
+    };
 
-                    // Guardar en el contexto global
-                    setInventoryData(itemsWithStatus);
-                    setCategoriesData(categoriesDataFetched);
-                    setSuppliersData(suppliersDataFetched);
-                    setBrandsData(brandsDataFetched);
-                    setAreasData(areasDataFetched);
+    const fetchAreas = async () => {
+        const res = await fetch(`${baseUrl}/areas`, { headers });
+        return await res.json();
+    };
 
-                } catch (error) {
-                    console.error('Error al cargar datos:', error);
-                } finally {
-                    setLoading(false);
-                }
-            } else {
-                // Si ya tenemos datos cacheados
-                setInventoryItems(inventoryData);
-                setCategories(categoriesData);
-                setSuppliers(suppliersData);
-                setBrands(brandsData);
-                setAreas(areasData);
-            }
+    const {
+        data: articlesData,
+        isLoading: articlesLoading,
+        isError: articlesError,
+    } = useQuery({
+        queryKey: ['articles'],
+        queryFn: fetchArticles,
+        staleTime: 1000 * 60 * 1, // 5 minutos
+    });
+
+    const {
+        data: categories = [],
+        isLoading: categoriesLoading,
+        isError: categoriesError,
+    } = useQuery({
+        queryKey: ['categories'],
+        queryFn: fetchCategories,
+        staleTime: 1000 * 60 * 1,
+    });
+
+    const {
+        data: suppliers = [],
+        isLoading: suppliersLoading,
+        isError: suppliersError,
+    } = useQuery({
+        queryKey: ['suppliers'],
+        queryFn: fetchSuppliers,
+        staleTime: 1000 * 60 * 1,
+    });
+
+    const {
+        data: brands = [],
+        isLoading: brandsLoading,
+        isError: brandsError,
+    } = useQuery({
+        queryKey: ['brands'],
+        queryFn: fetchBrands,
+        staleTime: 1000 * 60 * 1,
+    });
+
+    const {
+        data: areas = [],
+        isLoading: areasLoading,
+        isError: areasError,
+    } = useQuery({
+        queryKey: ['areas'],
+        queryFn: fetchAreas,
+        staleTime: 1000 * 60 * 1,
+    });
+
+    const loading = articlesLoading || categoriesLoading || suppliersLoading || brandsLoading || areasLoading;
+    const error = articlesError || categoriesError || suppliersError || brandsError || areasError;
+
+    const inventoryItems = articlesData || [];
+
+    // Mutations
+    // Crear artículo (POST /articles)
+    const createArticle = async (newItem) => {
+        const res = await fetch(`${baseUrl}/articles`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(newItem),
+        });
+        if (!res.ok) {
+            throw new Error('Error al crear artículo');
         }
+        return res.json();
+    };
 
-        fetchData();
-    }, [
-        inventoryData, categoriesData, suppliersData, brandsData, areasData,
-        setInventoryData, setCategoriesData, setSuppliersData, setBrandsData, setAreasData
-    ]);
+    // Actualizar artículo (PUT /articles/{id})
+    const updateArticle = async (updatedItem) => {
+        const { id, ...rest } = updatedItem;
+        const res = await fetch(`${baseUrl}/articles/${id}`, {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify(rest),
+        });
+        if (!res.ok) {
+            throw new Error('Error al actualizar artículo');
+        }
+        return res.json();
+    };
+
+    const createMutation = useMutation({
+        mutationFn: createArticle,
+        onSuccess: () => {
+            // Invalida la caché de artículos para refetch
+            queryClient.invalidateQueries({ queryKey: ['articles'] });
+        }
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: updateArticle,
+        onSuccess: () => {
+            // Invalida la caché de artículos para refetch
+            queryClient.invalidateQueries({ queryKey: ['articles'] });
+        }
+    });
 
     const handleAddItem = (newItem) => {
-        const status = calculateStatus(newItem.stock, newItem.min_stock, newItem.is_ordered);
-        const updatedItems = [...inventoryItems, { ...newItem, status }];
-        setInventoryItems(updatedItems);
-        setInventoryData(updatedItems); // Actualizar en contexto
+        // Llama a la mutación
+        createMutation.mutate(newItem);
     };
 
     const handleUpdateItem = (updatedItem) => {
-        const updatedStatus = calculateStatus(updatedItem.stock, updatedItem.min_stock, updatedItem.is_ordered);
-        const itemWithUpdatedStatus = { ...updatedItem, status: updatedStatus };
-
-        const updatedItems = inventoryItems.map(item =>
-            item.id === itemWithUpdatedStatus.id ? itemWithUpdatedStatus : item
-        );
-        setInventoryItems(updatedItems);
-        setInventoryData(updatedItems); // Actualizar en contexto
+        updateMutation.mutate(updatedItem);
     };
 
     const toggleExportModal = () => setShowExportModal(!showExportModal);
@@ -178,10 +225,18 @@ function Inventory() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-screen">
-                {/* Aquí puedes poner un spinner animado, un gif o una imagen */}
-                <img src="public\icons\loading_conejo.gif" alt="Cargando..." className="w-20 h-20" />
+                {/* Spinner de carga */}
+                <img src="public/icons/loading_conejo.gif" alt="Cargando..." className="w-20 h-20" />
             </div>
         );
+    }
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <p className="text-red-500">Error al cargar datos. Por favor intenta de nuevo.</p>
+            </div>
+        )
     }
 
     return (
@@ -321,7 +376,7 @@ function Inventory() {
 
             <AnimatePresence>
                 <ul className="space-y-4">
-                    {filteredItems.map((item) => (
+                    {inventoryItems.map((item) => (
                         <motion.div
                             key={item.id}
                             initial={{ opacity: 0, y: -10 }}

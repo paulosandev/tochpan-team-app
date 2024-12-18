@@ -43,7 +43,7 @@ function Inventory() {
         return "Agotado";
     };
 
-    // Fetchers para React Query
+    // Fetchers
     const fetchArticles = async () => {
         const res = await fetch(`${baseUrl}/articles`, { headers });
         const data = await res.json();
@@ -80,7 +80,7 @@ function Inventory() {
     } = useQuery({
         queryKey: ['articles'],
         queryFn: fetchArticles,
-        staleTime: 1000 * 60 * 1, // 5 minutos
+        staleTime: 1000 * 60 * 1
     });
 
     const {
@@ -129,7 +129,6 @@ function Inventory() {
     const inventoryItems = articlesData || [];
 
     // Mutations
-    // Crear artículo (POST /articles)
     const createArticle = async (newItem) => {
         const res = await fetch(`${baseUrl}/articles`, {
             method: 'POST',
@@ -142,7 +141,6 @@ function Inventory() {
         return res.json();
     };
 
-    // Actualizar artículo (PUT /articles/{id})
     const updateArticle = async (updatedItem) => {
         const { id, ...rest } = updatedItem;
         const res = await fetch(`${baseUrl}/articles/${id}`, {
@@ -159,7 +157,6 @@ function Inventory() {
     const createMutation = useMutation({
         mutationFn: createArticle,
         onSuccess: () => {
-            // Invalida la caché de artículos para refetch
             queryClient.invalidateQueries({ queryKey: ['articles'] });
         }
     });
@@ -167,13 +164,11 @@ function Inventory() {
     const updateMutation = useMutation({
         mutationFn: updateArticle,
         onSuccess: () => {
-            // Invalida la caché de artículos para refetch
             queryClient.invalidateQueries({ queryKey: ['articles'] });
         }
     });
 
     const handleAddItem = (newItem) => {
-        // Llama a la mutación
         createMutation.mutate(newItem);
     };
 
@@ -184,35 +179,44 @@ function Inventory() {
     const toggleExportModal = () => setShowExportModal(!showExportModal);
     const toggleCreateArticleModal = () => setShowCreateArticleModal(!showCreateArticleModal);
 
+    // Extraemos el nombre de la categoría y del proveedor del artículo:
     const filteredItems = inventoryItems
         .filter((item) => {
-            const categoryName = item.category ? item.category.name : '';
+            const categoryName = item.category?.name || '';
+            const supplierName = item.supplier?.name || '';
+
             const matchesCategory = categoryFilter === "Todas las categorías" || categoryName === categoryFilter;
             const matchesStatus = statusFilter === "Todos" || item.status === statusFilter;
 
+            // Dependiendo del parámetro de orden, usamos un campo distinto para búsqueda
             const fieldValue = (() => {
-                if (sortParameter === 'category') return item.category?.name || '';
-                if (sortParameter === 'supplier') return item.supplier?.name || '';
-                if (sortParameter === 'name') return item.name || '';
-                return item.name || '';
-            })().toString().toLowerCase();
+                if (sortParameter === 'category') return categoryName.toLowerCase();
+                if (sortParameter === 'supplier') return supplierName.toLowerCase();
+                if (sortParameter === 'name') return item.name.toLowerCase();
+                return item.name.toLowerCase();
+            })();
 
             const matchesSearch = fieldValue.includes(searchTerm.toLowerCase());
             return matchesCategory && matchesStatus && matchesSearch;
         })
         .sort((a, b) => {
+            const categoryNameA = a.category?.name.toLowerCase() || '';
+            const categoryNameB = b.category?.name.toLowerCase() || '';
+            const supplierNameA = a.supplier?.name.toLowerCase() || '';
+            const supplierNameB = b.supplier?.name.toLowerCase() || '';
+
             const fieldA = (() => {
-                if (sortParameter === 'category') return a.category?.name || '';
-                if (sortParameter === 'supplier') return a.supplier?.name || '';
-                if (sortParameter === 'name') return a.name || '';
-                return a.name || '';
+                if (sortParameter === 'category') return categoryNameA;
+                if (sortParameter === 'supplier') return supplierNameA;
+                if (sortParameter === 'name') return a.name.toLowerCase();
+                return a.name.toLowerCase();
             })();
 
             const fieldB = (() => {
-                if (sortParameter === 'category') return b.category?.name || '';
-                if (sortParameter === 'supplier') return b.supplier?.name || '';
-                if (sortParameter === 'name') return b.name || '';
-                return b.name || '';
+                if (sortParameter === 'category') return categoryNameB;
+                if (sortParameter === 'supplier') return supplierNameB;
+                if (sortParameter === 'name') return b.name.toLowerCase();
+                return b.name.toLowerCase();
             })();
 
             if (fieldA < fieldB) return isAscending ? -1 : 1;
@@ -225,7 +229,6 @@ function Inventory() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-screen">
-                {/* Spinner de carga */}
                 <img src="public/icons/loading_conejo.gif" alt="Cargando..." className="w-20 h-20" />
             </div>
         );
@@ -236,7 +239,7 @@ function Inventory() {
             <div className="flex items-center justify-center h-screen">
                 <p className="text-red-500">Error al cargar datos. Por favor intenta de nuevo.</p>
             </div>
-        )
+        );
     }
 
     return (
@@ -376,7 +379,7 @@ function Inventory() {
 
             <AnimatePresence>
                 <ul className="space-y-4">
-                    {inventoryItems.map((item) => (
+                    {filteredItems.map((item) => (
                         <motion.div
                             key={item.id}
                             initial={{ opacity: 0, y: -10 }}

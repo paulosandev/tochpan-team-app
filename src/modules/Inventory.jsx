@@ -11,6 +11,7 @@ function Inventory() {
 
     const [showScrollTopButton, setShowScrollTopButton] = useState(false);
     const [categoryFilter, setCategoryFilter] = useState("Todas las categorías");
+    const [areaFilter, setAreaFilter] = useState("Todas las áreas"); // Nuevo estado para área
     const [statusFilter, setStatusFilter] = useState("Todos");
     const [searchTerm, setSearchTerm] = useState("");
     const [isAscending, setIsAscending] = useState(true);
@@ -184,30 +185,36 @@ function Inventory() {
         .filter((item) => {
             const categoryName = item.category?.name || '';
             const supplierName = item.supplier?.name || '';
+            const areaName = item.area?.name || ''; // Nombre del área
 
             const matchesCategory = categoryFilter === "Todas las categorías" || categoryName === categoryFilter;
+            const matchesArea = areaFilter === "Todas las áreas" || areaName === areaFilter; // Condición para área
             const matchesStatus = statusFilter === "Todos" || item.status === statusFilter;
 
             // Dependiendo del parámetro de orden, usamos un campo distinto para búsqueda
             const fieldValue = (() => {
                 if (sortParameter === 'category') return categoryName.toLowerCase();
                 if (sortParameter === 'supplier') return supplierName.toLowerCase();
+                if (sortParameter === 'area') return areaName.toLowerCase(); // Opcional: ordenar por área
                 if (sortParameter === 'name') return item.name.toLowerCase();
                 return item.name.toLowerCase();
             })();
 
             const matchesSearch = fieldValue.includes(searchTerm.toLowerCase());
-            return matchesCategory && matchesStatus && matchesSearch;
+            return matchesCategory && matchesArea && matchesStatus && matchesSearch;
         })
         .sort((a, b) => {
             const categoryNameA = a.category?.name.toLowerCase() || '';
             const categoryNameB = b.category?.name.toLowerCase() || '';
             const supplierNameA = a.supplier?.name.toLowerCase() || '';
             const supplierNameB = b.supplier?.name.toLowerCase() || '';
+            const areaNameA = a.area?.name.toLowerCase() || '';
+            const areaNameB = b.area?.name.toLowerCase() || '';
 
             const fieldA = (() => {
                 if (sortParameter === 'category') return categoryNameA;
                 if (sortParameter === 'supplier') return supplierNameA;
+                if (sortParameter === 'area') return areaNameA; // Opcional: ordenar por área
                 if (sortParameter === 'name') return a.name.toLowerCase();
                 return a.name.toLowerCase();
             })();
@@ -215,6 +222,7 @@ function Inventory() {
             const fieldB = (() => {
                 if (sortParameter === 'category') return categoryNameB;
                 if (sortParameter === 'supplier') return supplierNameB;
+                if (sortParameter === 'area') return areaNameB; // Opcional: ordenar por área
                 if (sortParameter === 'name') return b.name.toLowerCase();
                 return b.name.toLowerCase();
             })();
@@ -314,25 +322,40 @@ function Inventory() {
                         ))}
                     </select>
 
-                    <div className="flex items-center space-x-2 w-full sm:w-1/2">
-                        <select
-                            className="border-gray-300 text-gray-500 rounded-md shadow-sm py-1 px-2 w-full"
-                            value={sortParameter}
-                            onChange={(e) => setSortParameter(e.target.value)}
-                        >
-                            <option value="name">Artículo</option>
-                            <option value="category">Categoría</option>
-                            <option value="supplier">Proveedor</option>
-                        </select>
-                        <motion.button
-                            onClick={toggleSortOrder}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            className="bg-gray-300 text-gray-700 text-sm px-3 py-1 rounded-md shadow-md hover:bg-gray-400 whitespace-nowrap"
-                        >
-                            {isAscending ? "A-Z" : "Z-A"}
-                        </motion.button>
-                    </div>
+                    {/* Nuevo Selector para Área */}
+                    <select
+                        className="border-gray-300 text-gray-500 rounded-md shadow-sm py-1 px-2 mb-2 sm:mb-0 w-full sm:w-1/2"
+                        value={areaFilter}
+                        onChange={(e) => setAreaFilter(e.target.value)}
+                    >
+                        <option>Todas las áreas</option>
+                        {areas.map((area) => (
+                            <option key={area.id} value={area.name}>{area.name}</option>
+                        ))}
+                    </select>
+                </div>
+            </div>
+
+            <div className="flex flex-col lg:flex-row lg:items-center lg:space-x-4 mb-4">
+                <div className="flex flex-1 space-x-2">
+                    <select
+                        className="border-gray-300 text-gray-500 rounded-md shadow-sm py-1 px-2 w-full"
+                        value={sortParameter}
+                        onChange={(e) => setSortParameter(e.target.value)}
+                    >
+                        <option value="name">Artículo</option>
+                        <option value="category">Categoría</option>
+                        <option value="supplier">Proveedor</option>
+                        <option value="area">Área</option> {/* Opcional: Opción para ordenar por Área */}
+                    </select>
+                    <motion.button
+                        onClick={toggleSortOrder}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className="bg-gray-300 text-gray-700 text-sm px-3 py-1 rounded-md shadow-md hover:bg-gray-400 whitespace-nowrap"
+                    >
+                        {isAscending ? "A-Z" : "Z-A"}
+                    </motion.button>
                 </div>
             </div>
 
@@ -430,22 +453,22 @@ function Inventory() {
             </AnimatePresence>
 
             <AnimatePresence>
-                {showCreateArticleModal && (
-                    <CreateArticleModal
-                        show={showCreateArticleModal}
-                        onClose={toggleCreateArticleModal}
-                        onAddItem={handleAddItem}
-                        categories={categories}
-                        suppliers={suppliers}
-                        brands={brands}
-                        areas={areas}
-                        token={token}
-                        baseUrl={baseUrl}
-                    />
-                )}
-            </AnimatePresence>
-        </div>
-    );
-}
+                    {showCreateArticleModal && (
+                        <CreateArticleModal
+                            show={showCreateArticleModal}
+                            onClose={toggleCreateArticleModal}
+                            onAddItem={handleAddItem}
+                            categories={categories}
+                            suppliers={suppliers}
+                            brands={brands}
+                            areas={areas}
+                            token={token}
+                            baseUrl={baseUrl}
+                        />
+                    )}
+                </AnimatePresence>
+            </div>
+        );
+    }
 
-export default Inventory;
+    export default Inventory;

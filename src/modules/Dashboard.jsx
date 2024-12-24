@@ -13,7 +13,7 @@ export default function Dashboard() {
             <p className="text-gray-600 text-sm mt-1">Turno: Mañana</p>
           </div>
           <img 
-            src="https://via.placeholder.com/48" 
+            src="https://cdn1.iconfinder.com/data/icons/family-avatar-solid-happy-party/1000/Asian_Male002-256.png" 
             alt="avatar usuario"
             className="w-12 h-12 rounded-full object-cover"
           />
@@ -24,12 +24,10 @@ export default function Dashboard() {
           <h2 className="text-lg font-medium text-gray-900">Pendientes</h2>
           <div className="bg-white rounded-xl shadow p-4 flex items-center space-x-4">
             <div className="flex-shrink-0">
-              <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75h4.5m-2.25 0V5.25m6 12A8.25 8.25 0 1110.5 5.25" />
-              </svg>
+              <img src="https://cdn1.iconfinder.com/data/icons/business-1355/32/Sticky_Note-256.png" alt="icon-task" className='w-6 h-6'/>
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-800">Revisar stock de pan</h3>
+              <h3 className="font-semibold text-gray-800">Revisar postres</h3>
               <p className="text-sm text-gray-500">Urgencia: Alta</p>
             </div>
             <button className="text-sm text-blue-600 font-medium hover:underline">

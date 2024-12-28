@@ -22,7 +22,7 @@ function Login() {
     setError('');
 
     try {
-      const response = await axios.post('https://tt-services-staging.up.railway.app/api/login', formData);
+      const response = await axios.post('http://localhost:8000/api/login', formData);
       const { token, user } = response.data;
       
       // Guardar en localStorage
@@ -63,7 +63,7 @@ function Login() {
 
         <div className="mt-6 flex justify-center space-y-3">
           <img
-            src="public/icons/baristas2.png"
+            src="https://res.cloudinary.com/dk6mfal8z/image/upload/f_auto,q_auto/v1/tochpan_assets/baristas2"
             alt="Fun game illustration"
             className="object-cover mb-6"
           />

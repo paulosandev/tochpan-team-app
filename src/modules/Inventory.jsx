@@ -11,7 +11,7 @@ import { useGlobalData } from '../GlobalDataContext';
 function Inventory() {
   // 2) Extrae el token desde tu contexto global
   const { token } = useGlobalData();
-  const baseUrl = 'https://tt-services-staging.up.railway.app/api';
+  const baseUrl = 'http://localhost:8000/api';
   const queryClient = useQueryClient();
 
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
@@ -269,7 +269,7 @@ function Inventory() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <img src="public/icons/loading_conejo.gif" alt="Cargando..." className="w-20 h-20" />
+        <img src="https://res.cloudinary.com/dk6mfal8z/image/upload/f_auto,q_auto/v1/tochpan_assets/f2rzjcxl1e1v29kvjvem" alt="Cargando..." className="w-20 h-20" />
       </div>
     );
   }
@@ -292,7 +292,7 @@ function Inventory() {
           whileTap={{ scale: 0.9 }}
           className="fixed bottom-8 right-8 bg-blue-500 text-white p-3 rounded-full shadow-lg hover:bg-blue-600 mb-12"
         >
-          <img className="h-6 w-6" src="public/icons/arrow-up.svg" alt="arrow-up" />
+          <img className="h-6 w-6" src="https://res.cloudinary.com/dk6mfal8z/image/upload/f_auto,q_auto/v1/tochpan_assets/arrow-up" alt="arrow-up" />
         </motion.button>
       )}
 

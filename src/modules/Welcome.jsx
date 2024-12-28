@@ -31,7 +31,7 @@ function Welcome() {
       <div className="flex-1 flex flex-col items-center justify-center px-8">
         {/* Ilustración central */}
         <img
-          src="public\icons\baristas.png"
+          src="https://res.cloudinary.com/dk6mfal8z/image/upload/f_auto,q_auto/v1/tochpan_assets/baristas1"
           alt="Fun game illustration"
           className=" object-cover mb-6"
         />

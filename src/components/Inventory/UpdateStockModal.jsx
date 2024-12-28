@@ -13,7 +13,7 @@ function UpdateStockModal({ show, onClose, item, onUpdateItem, token, baseUrl })
 
     useEffect(() => {
         if (item) {
-            // Si tiene originalStockInput, lo usamos, sino usamos el stock del backend
+            // Si tiene originalStockInput, lo usamos, sino el stock del backend
             setItemStock(item.originalStockInput ?? item.stock.toString());
             setIsOrdered(item.is_ordered === 1);
         }
@@ -86,7 +86,7 @@ function UpdateStockModal({ show, onClose, item, onUpdateItem, token, baseUrl })
             }
 
             const updatedItem = await response.json();
-            // Mantenemos el formato original ingresado por el usuario
+            // Mantenemos el formato original ingresado
             updatedItem.originalStockInput = itemStock;
             // minStock no se edita aquí, así que si existe originalMinStockInput lo conservamos
             if (item.originalMinStockInput !== undefined) {

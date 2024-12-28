@@ -16,43 +16,83 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
     const [activeTab, setActiveTab] = useState("url");
     const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-    const headers = {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-    };
+    // Para prevenir envíos duplicados
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // (OJO) No hacemos fetch de creación aquí, solo subimos imagen
     const parseFractionalQuantity = (input) => {
         if (typeof input === 'number') return input;
-
         input = input.trim();
         if (input.startsWith('-')) {
             return NaN;
         }
-
+        // decimales
         if (/^\d+(\.\d+)?$/.test(input)) {
             return parseFloat(input);
         }
-
+        // Fracción simple
         if (/^\d+\/\d+$/.test(input)) {
-            const [numerator, denominator] = input.split('/').map(Number);
-            return numerator / denominator;
+            const [num, den] = input.split('/').map(Number);
+            return num / den;
         }
-
+        // Fracción mixta
         if (/^\d+\s+\d+\/\d+$/.test(input)) {
             const [whole, fraction] = input.split(/\s+/);
-            const [numerator, denominator] = fraction.split('/').map(Number);
-            return parseInt(whole, 10) + (numerator / denominator);
+            const [num, den] = fraction.split('/').map(Number);
+            return parseInt(whole, 10) + (num / den);
         }
-
         return NaN;
+    };
+
+    // Subir imagen a /upload y obtener la URL
+    const uploadImageAndGetUrl = async () => {
+        if (!imageFile) return "";
+
+        const formData = new FormData();
+        formData.append("image", imageFile);
+
+        try {
+            const response = await fetch(`${baseUrl}/upload`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`
+                },
+                body: formData,
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("Error al subir imagen:", errorData);
+                alert("Error al subir la imagen");
+                return "";
+            }
+
+            const data = await response.json();
+            return data.url; 
+        } catch (error) {
+            console.error("Error de conexión al subir imagen:", error);
+            alert("Error de conexión al subir imagen");
+            return "";
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (isSubmitting) return;
+        setIsSubmitting(true);
 
-        if (!newItemName.trim() || !newItemCategoryId || !newItemBrandId || !newItemAreaId || !newItemStock.trim() || !newItemMinStock.trim() || !newItemSupplierId) {
+        // Validar campos
+        if (
+            !newItemName.trim() ||
+            !newItemCategoryId ||
+            !newItemBrandId ||
+            !newItemAreaId ||
+            !newItemStock.trim() ||
+            !newItemMinStock.trim() ||
+            !newItemSupplierId
+        ) {
             alert("Todos los campos requeridos deben completarse.");
+            setIsSubmitting(false);
             return;
         }
 
@@ -61,10 +101,23 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
 
         if (isNaN(stockValue) || isNaN(minStockValue) || stockValue < 0 || minStockValue < 0) {
             alert("Por favor, ingrese cantidades válidas para el stock.");
+            setIsSubmitting(false);
             return;
         }
 
-        const body = {
+        // Subir imagen si corresponde
+        let finalImageUrl = newItemImageUrl;
+        if (activeTab === "upload" && imageFile) {
+            const uploadedUrl = await uploadImageAndGetUrl();
+            if (!uploadedUrl) {
+                setIsSubmitting(false);
+                return;
+            }
+            finalImageUrl = uploadedUrl;
+        }
+
+        // Construimos el objeto "nuevo artículo" (sin POST)
+        const newItem = {
             name: newItemName,
             area_id: parseInt(newItemAreaId, 10),
             brand_id: parseInt(newItemBrandId, 10),
@@ -73,38 +126,21 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
             stock: stockValue,
             min_stock: minStockValue,
             unit: newItemUnit,
-            image_url: newItemImageUrl,
-            is_ordered: isOrdered ? 1 : 0
+            image_url: finalImageUrl,
+            is_ordered: isOrdered ? 1 : 0,
         };
 
-        try {
-            const response = await fetch(`${baseUrl}/articles`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify(body)
-            });
+        // Guardamos la fracción original
+        newItem.originalStockInput = newItemStock.match(/[^0-9\.]/) ? newItemStock : null;
+        newItem.originalMinStockInput = newItemMinStock.match(/[^0-9\.]/) ? newItemMinStock : null;
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error("Error al agregar artículo:", errorData);
-                alert("Error al agregar el artículo");
-                return;
-            }
+        // Llamamos a la función del padre, que hará la mutación y POST
+        onAddItem(newItem);
 
-            const createdItem = await response.json();
-            // Guardamos la fracción original si es que el usuario ingreso fracción
-            // Aquí asumimos que siempre que el usuario haya ingresado algo distinto a un número puro se trata de una fracción
-            // Puedes refinar esta lógica.
-            createdItem.originalStockInput = newItemStock.match(/[^0-9\.]/) ? newItemStock : null;
-            createdItem.originalMinStockInput = newItemMinStock.match(/[^0-9\.]/) ? newItemMinStock : null;
-
-            onAddItem(createdItem);
-            resetForm();
-            onClose();
-        } catch (err) {
-            console.error("Error al conectar con el servidor:", err);
-            alert("Error de conexión");
-        }
+        // Limpiamos y cerramos
+        resetForm();
+        onClose();
+        setIsSubmitting(false);
     };
 
     const resetForm = () => {
@@ -173,10 +209,15 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
                             className="absolute top-4 right-4 text-gray-600 hover:text-gray-900"
                             aria-label="Cerrar modal"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                <path strokeLinecap="round" strokeLinejoin="round"
-                                    d="M6 18L18 6M6 6l12 12" />
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-6 w-6"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
 
@@ -299,14 +340,22 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
                                     <button
                                         type="button"
                                         onClick={() => setActiveTab("url")}
-                                        className={`px-4 py-1 rounded-md ${activeTab === "url" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
+                                        className={`px-4 py-1 rounded-md ${
+                                            activeTab === "url"
+                                                ? "bg-blue-500 text-white"
+                                                : "bg-gray-200 text-gray-700"
+                                        }`}
                                     >
                                         URL de Imagen
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setActiveTab("upload")}
-                                        className={`px-4 py-1 rounded-md ${activeTab === "upload" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
+                                        className={`px-4 py-1 rounded-md ${
+                                            activeTab === "upload"
+                                                ? "bg-blue-500 text-white"
+                                                : "bg-gray-200 text-gray-700"
+                                        }`}
                                     >
                                         Subir Imagen
                                     </button>
@@ -327,6 +376,7 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
                                         />
                                     </>
                                 )}
+
                                 {activeTab === "upload" && (
                                     <>
                                         <label>Subir Imagen</label>
@@ -341,9 +391,10 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
 
                                 <button
                                     type="submit"
-                                    className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+                                    disabled={isSubmitting}
+                                    className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 disabled:bg-gray-400"
                                 >
-                                    Agregar
+                                    {isSubmitting ? "Guardando..." : "Agregar"}
                                 </button>
                             </div>
                         </form>
@@ -369,7 +420,9 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
                             exit={{ scale: 0.8 }}
                             transition={{ duration: 0.3 }}
                         >
-                            <h2 className="text-xl font-semibold mb-4">¿Desea cerrar sin guardar los cambios?</h2>
+                            <h2 className="text-xl font-semibold mb-4">
+                                ¿Desea cerrar sin guardar los cambios?
+                            </h2>
                             <div className="flex space-x-4 justify-center">
                                 <button
                                     onClick={() => {

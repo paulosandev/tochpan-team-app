@@ -24,13 +24,6 @@ function Inventory() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [showCreateArticleModal, setShowCreateArticleModal] = useState(false);
 
-  // Si quieres forzar al usuario a loguearse si no hay token,
-  // puedes hacer un chequeo rápido aquí:
-  // if (!token) {
-  //   return <div>Por favor inicia sesión.</div>;
-  // }
-
-  // Cabeceras comunes
   const headers = {
     'Accept': 'application/json',
     'Authorization': `Bearer ${token}`,
@@ -49,7 +42,6 @@ function Inventory() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Determina el “status” del artículo
   const calculateStatus = (stock, minStock, isOrdered) => {
     if (isOrdered) return "Pedido";
     if (stock >= minStock) return "Suficiente";
@@ -180,7 +172,6 @@ function Inventory() {
   const createMutation = useMutation({
     mutationFn: createArticle,
     onSuccess: () => {
-      // Refrescar lista de artículos
       queryClient.invalidateQueries({ queryKey: ['articles'] });
     }
   });
@@ -192,12 +183,12 @@ function Inventory() {
     }
   });
 
-  // Recibimos el item ya “preparado” (con image_url final, etc.) y hacemos la mutación
   const handleAddItem = (newItem) => {
     createMutation.mutate(newItem);
   };
 
-  // Igualmente, recibimos updatedItem y disparamos la PUT
+  // Este método se llama cuando el modal llama a onUpdateItem(updatedItem)
+  // Realiza la mutación PUT (una sola vez) y refresca la lista
   const handleUpdateItem = (updatedItem) => {
     updateMutation.mutate(updatedItem);
   };
@@ -269,7 +260,11 @@ function Inventory() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <img src="https://res.cloudinary.com/dk6mfal8z/image/upload/f_auto,q_auto/v1/tochpan_assets/f2rzjcxl1e1v29kvjvem" alt="Cargando..." className="w-20 h-20" />
+        <img
+          src="https://res.cloudinary.com/dk6mfal8z/image/upload/f_auto,q_auto/v1/tochpan_assets/f2rzjcxl1e1v29kvjvem"
+          alt="Cargando..."
+          className="w-20 h-20"
+        />
       </div>
     );
   }
@@ -292,14 +287,22 @@ function Inventory() {
           whileTap={{ scale: 0.9 }}
           className="fixed bottom-8 right-8 bg-blue-500 text-white p-3 rounded-full shadow-lg hover:bg-blue-600 mb-12"
         >
-          <img className="h-6 w-6" src="https://res.cloudinary.com/dk6mfal8z/image/upload/f_auto,q_auto/v1/tochpan_assets/arrow-up" alt="arrow-up" />
+          <img
+            className="h-6 w-6"
+            src="https://res.cloudinary.com/dk6mfal8z/image/upload/f_auto,q_auto/v1/tochpan_assets/arrow-up"
+            alt="arrow-up"
+          />
         </motion.button>
       )}
 
       <nav className="text-sm text-gray-500 mb-4">
-        <a href="#" className="hover:underline">Home</a>
+        <a href="#" className="hover:underline">
+          Home
+        </a>
         <span className="mx-2">/</span>
-        <a href="#" className="hover:underline">Inventario</a>
+        <a href="#" className="hover:underline">
+          Inventario
+        </a>
       </nav>
 
       <div className="flex items-center justify-between mb-6">
@@ -311,10 +314,19 @@ function Inventory() {
             onClick={toggleExportModal}
             className="bg-blue-500 text-white p-2 rounded-full shadow-md hover:bg-blue-600"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none"
-              viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round"
-                d="M4 4v16h16V4H4zm8 4v8m0 0l-3-3m3 3l3-3" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 4v16h16V4H4zm8 4v8m0 0l-3-3m3 3l3-3"
+              />
             </svg>
           </motion.button>
           <motion.button
@@ -323,10 +335,15 @@ function Inventory() {
             onClick={toggleCreateArticleModal}
             className="bg-green-500 text-white p-2 rounded-full shadow-md hover:bg-green-600"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none"
-              viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round"
-                d="M12 4v16m8-8H4" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
           </motion.button>
         </div>
@@ -350,7 +367,9 @@ function Inventory() {
           >
             <option>Todas las categorías</option>
             {categories.map((category) => (
-              <option key={category.id} value={category.name}>{category.name}</option>
+              <option key={category.id} value={category.name}>
+                {category.name}
+              </option>
             ))}
           </select>
 
@@ -361,7 +380,9 @@ function Inventory() {
           >
             <option>Todas las áreas</option>
             {areas.map((area) => (
-              <option key={area.id} value={area.name}>{area.name}</option>
+              <option key={area.id} value={area.name}>
+                {area.name}
+              </option>
             ))}
           </select>
         </div>
@@ -483,7 +504,10 @@ function Inventory() {
                   Exportar Excel
                 </button>
               </div>
-              <button onClick={toggleExportModal} className="mt-4 text-blue-500 hover:underline">
+              <button
+                onClick={toggleExportModal}
+                className="mt-4 text-blue-500 hover:underline"
+              >
                 Cerrar
               </button>
             </motion.div>

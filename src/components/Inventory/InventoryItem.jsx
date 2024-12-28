@@ -73,12 +73,24 @@ function InventoryItem({ item, onUpdateItem, categories, suppliers, brands, area
                     </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                    <span className={`text-sm px-2 py-1 rounded-md ${statusClasses[item.status] || "bg-gray-200 text-gray-700"}`}>
+                    <span
+                        className={`text-sm px-2 py-1 rounded-md ${
+                            statusClasses[item.status] || "bg-gray-200 text-gray-700"
+                        }`}
+                    >
                         {item.status}
                     </span>
                     <div className="relative" ref={menuRef}>
-                        <button onClick={toggleMenu} className="text-gray-500 hover:text-gray-700 focus:outline-none">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
+                        <button
+                            onClick={toggleMenu}
+                            className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-6 w-6"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                            >
                                 <path d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" />
                             </svg>
                         </button>

@@ -5,15 +5,12 @@ function UpdateStockModal({ show, onClose, item, onUpdateItem, token, baseUrl })
     const [itemStock, setItemStock] = useState("");
     const [isOrdered, setIsOrdered] = useState(false);
 
-    const headers = {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-    };
+    // Ya no necesitamos "headers" ni "fetch" aquí:
+    // const headers = {...};
 
     useEffect(() => {
         if (item) {
-            // Si tiene originalStockInput, lo usamos, sino el stock del backend
+            // Si tiene originalStockInput, lo usamos. Si no, el stock del backend
             setItemStock(item.originalStockInput ?? item.stock.toString());
             setIsOrdered(item.is_ordered === 1);
         }
@@ -58,47 +55,25 @@ function UpdateStockModal({ show, onClose, item, onUpdateItem, token, baseUrl })
             return;
         }
 
-        const body = {
-            name: item.name,
-            area_id: item.area_id,
-            brand_id: item.brand_id,
-            category_id: item.category_id,
-            supplier_id: item.supplier_id,
+        // Construimos el objeto con datos actualizados
+        const updatedItem = {
+            ...item,
             stock: stockValue,
-            min_stock: item.min_stock,
-            unit: item.unit,
-            image_url: item.image_url,
-            is_ordered: isOrdered ? 1 : 0
+            is_ordered: isOrdered ? 1 : 0,
+            // Mantenemos el formato original ingresado
+            originalStockInput: itemStock,
         };
 
-        try {
-            const response = await fetch(`${baseUrl}/articles/${item.id}`, {
-                method: 'PUT',
-                headers,
-                body: JSON.stringify(body)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error("Error al actualizar stock:", errorData);
-                alert("Error al actualizar el stock");
-                return;
-            }
-
-            const updatedItem = await response.json();
-            // Mantenemos el formato original ingresado
-            updatedItem.originalStockInput = itemStock;
-            // minStock no se edita aquí, así que si existe originalMinStockInput lo conservamos
-            if (item.originalMinStockInput !== undefined) {
-                updatedItem.originalMinStockInput = item.originalMinStockInput;
-            }
-
-            onUpdateItem(updatedItem);
-            onClose();
-        } catch (err) {
-            console.error("Error al conectar con el servidor:", err);
-            alert("Error de conexión");
+        // minStock no se edita aquí, así que si existe originalMinStockInput lo conservamos
+        if (item.originalMinStockInput !== undefined) {
+            updatedItem.originalMinStockInput = item.originalMinStockInput;
         }
+
+        // En vez de hacer fetch aquí, delegamos la actualización al padre
+        onUpdateItem(updatedItem);
+
+        // Cerramos el modal
+        onClose();
     };
 
     const handleClose = () => {

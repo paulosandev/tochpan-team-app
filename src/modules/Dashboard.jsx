@@ -5,7 +5,9 @@ import axios from 'axios';
 import { useGlobalData } from '../GlobalDataContext';
 
 export default function Dashboard() {
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
   const { user, token, setToken, setUser } = useGlobalData();
+  
   const navigate = useNavigate();
 
   // Estado para controlar el menú desplegable
@@ -14,7 +16,7 @@ export default function Dashboard() {
   const handleLogout = async () => {
     try {
       await axios.post(
-        'http://localhost:8000/api/logout',
+        `${baseUrl}/api/logout`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` }

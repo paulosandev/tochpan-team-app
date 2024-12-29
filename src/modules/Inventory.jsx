@@ -7,7 +7,8 @@ import { useGlobalData } from '../GlobalDataContext';
 
 function Inventory() {
     const { token } = useGlobalData();
-    const baseUrl = 'http://localhost:8000/api';
+    const baseUrlEnv = import.meta.env.VITE_API_BASE_URL;
+    const baseUrl = `${baseUrlEnv}/api`;
     const queryClient = useQueryClient();
 
     const [showScrollTopButton, setShowScrollTopButton] = useState(false);

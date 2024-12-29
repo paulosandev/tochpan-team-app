@@ -6,7 +6,7 @@ export default function Menu() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <img
-        src="public\icons\loading.gif"
+        src="https://res.cloudinary.com/dk6mfal8z/image/upload/f_auto,q_auto/v1/tochpan_assets/loading-taza"
         alt="Construcción en progreso"
         className="h-14 w-14" // Ajusta el tamaño y la animación según tus preferencias
       />

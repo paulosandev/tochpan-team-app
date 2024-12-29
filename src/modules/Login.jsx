@@ -1,4 +1,4 @@
-// Login.jsx
+// src/modules/Login.jsx
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -22,7 +22,7 @@ function Login() {
     setError('');
 
     try {
-      const response = await axios.post('https://tt-services-staging.up.railway.app/api/login', formData);
+      const response = await axios.post('http://localhost:8000/api/login', formData);
       const { token, user } = response.data;
       
       // Guardar en localStorage
@@ -63,7 +63,7 @@ function Login() {
 
         <div className="mt-6 flex justify-center space-y-3">
           <img
-            src="public/icons/baristas2.png"
+            src="https://res.cloudinary.com/dk6mfal8z/image/upload/f_auto,q_auto/v1/tochpan_assets/baristas2"
             alt="Fun game illustration"
             className="object-cover mb-6"
           />
@@ -110,7 +110,7 @@ function Login() {
               {/* Ícono de ojo (sólo decorativo si no has implementado toggle show/hide) */}
               <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 576 512">
-                  <path d="M..."></path>
+                  <path d="M..." />
                 </svg>
               </div>
             </div>

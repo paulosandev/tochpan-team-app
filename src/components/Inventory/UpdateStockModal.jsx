@@ -5,15 +5,8 @@ function UpdateStockModal({ show, onClose, item, onUpdateItem, token, baseUrl })
     const [itemStock, setItemStock] = useState("");
     const [isOrdered, setIsOrdered] = useState(false);
 
-    const headers = {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-    };
-
     useEffect(() => {
         if (item) {
-            // Si tiene originalStockInput, lo usamos, sino el stock del backend
             setItemStock(item.originalStockInput ?? item.stock.toString());
             setIsOrdered(item.is_ordered === 1);
         }
@@ -36,8 +29,8 @@ function UpdateStockModal({ show, onClose, item, onUpdateItem, token, baseUrl })
 
         if (/^\d+\s+\d+\/\d+$/.test(input)) {
             const [whole, fraction] = input.split(/\s+/);
-            const [numerator, denominator] = fraction.split("/").map(Number);
-            return parseInt(whole, 10) + numerator / denominator;
+            const [num, den] = fraction.split("/").map(Number);
+            return parseInt(whole, 10) + num/den;
         }
 
         return NaN;
@@ -58,50 +51,19 @@ function UpdateStockModal({ show, onClose, item, onUpdateItem, token, baseUrl })
             return;
         }
 
-        const body = {
-            name: item.name,
-            area_id: item.area_id,
-            brand_id: item.brand_id,
-            category_id: item.category_id,
-            supplier_id: item.supplier_id,
+        const updatedItem = {
+            ...item,
             stock: stockValue,
-            min_stock: item.min_stock,
-            unit: item.unit,
-            image_url: item.image_url,
-            is_ordered: isOrdered ? 1 : 0
+            is_ordered: isOrdered ? 1 : 0,
+            originalStockInput: itemStock,
         };
 
-        try {
-            const response = await fetch(`${baseUrl}/articles/${item.id}`, {
-                method: 'PUT',
-                headers,
-                body: JSON.stringify(body)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error("Error al actualizar stock:", errorData);
-                alert("Error al actualizar el stock");
-                return;
-            }
-
-            const updatedItem = await response.json();
-            // Mantenemos el formato original ingresado
-            updatedItem.originalStockInput = itemStock;
-            // minStock no se edita aquí, así que si existe originalMinStockInput lo conservamos
-            if (item.originalMinStockInput !== undefined) {
-                updatedItem.originalMinStockInput = item.originalMinStockInput;
-            }
-
-            onUpdateItem(updatedItem);
-            onClose();
-        } catch (err) {
-            console.error("Error al conectar con el servidor:", err);
-            alert("Error de conexión");
+        if (item.originalMinStockInput !== undefined) {
+            updatedItem.originalMinStockInput = item.originalMinStockInput;
         }
-    };
 
-    const handleClose = () => {
+        // Delegamos la actualización al padre
+        onUpdateItem(updatedItem);
         onClose();
     };
 
@@ -109,7 +71,7 @@ function UpdateStockModal({ show, onClose, item, onUpdateItem, token, baseUrl })
 
     return (
         <motion.div
-            onClick={handleClose}
+            onClick={onClose}
             className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -125,7 +87,7 @@ function UpdateStockModal({ show, onClose, item, onUpdateItem, token, baseUrl })
                 transition={{ duration: 0.3 }}
             >
                 <button
-                    onClick={handleClose}
+                    onClick={onClose}
                     className="absolute top-4 right-4 text-gray-600 hover:text-gray-900"
                     aria-label="Cerrar modal"
                 >

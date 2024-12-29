@@ -4,8 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import InventoryItem from '../components/Inventory/InventoryItem';
 import CreateArticleModal from '../components/Inventory/CreateArticleModal';
-
-// 1) Importa tu contexto para leer el token
 import { useGlobalData } from '../GlobalDataContext';
 
 function Inventory() {
@@ -23,6 +21,8 @@ function Inventory() {
   const [sortParameter, setSortParameter] = useState("name");
   const [showExportModal, setShowExportModal] = useState(false);
   const [showCreateArticleModal, setShowCreateArticleModal] = useState(false);
+
+  // if (!token) return <div>Por favor inicia sesión.</div>;
 
   const headers = {
     'Accept': 'application/json',
@@ -42,6 +42,7 @@ function Inventory() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Determina el “status” del artículo
   const calculateStatus = (stock, minStock, isOrdered) => {
     if (isOrdered) return "Pedido";
     if (stock >= minStock) return "Suficiente";
@@ -169,26 +170,48 @@ function Inventory() {
     return res.json();
   };
 
+  // IMPORTANTE: en onSuccess hacemos *actualizaciones parciales* de la caché,
+  // en vez de invalidar 'articles' y recargar todo.
   const createMutation = useMutation({
     mutationFn: createArticle,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['articles'] });
-    }
+    onSuccess: (data) => {
+      // Ajusta el status en la respuesta que te devolvió el servidor
+      const newArticle = {
+        ...data,
+        status: calculateStatus(data.stock, data.min_stock, data.is_ordered),
+      };
+      // Actualiza la caché de 'articles' sin hacer refetch total
+      queryClient.setQueryData(['articles'], (old) => {
+        if (!old) return [newArticle];
+        return [...old, newArticle];
+      });
+    },
   });
 
   const updateMutation = useMutation({
     mutationFn: updateArticle,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['articles'] });
-    }
+    onSuccess: (data) => {
+      // Ajusta el status
+      const updated = {
+        ...data,
+        status: calculateStatus(data.stock, data.min_stock, data.is_ordered),
+      };
+      // Actualizamos el artículo específico en la caché
+      queryClient.setQueryData(['articles'], (old) => {
+        if (!old) return [updated];
+        return old.map((item) => (item.id === updated.id ? updated : item));
+      });
+    },
   });
 
+  // Este método se llama cuando el modal llama a onAddItem
+  // Realiza la mutación POST (añade el artículo)
   const handleAddItem = (newItem) => {
     createMutation.mutate(newItem);
   };
 
-  // Este método se llama cuando el modal llama a onUpdateItem(updatedItem)
-  // Realiza la mutación PUT (una sola vez) y refresca la lista
+  // Este método se llama cuando el modal llama a onUpdateItem
+  // Realiza la mutación PUT (actualiza el artículo)
   const handleUpdateItem = (updatedItem) => {
     updateMutation.mutate(updatedItem);
   };

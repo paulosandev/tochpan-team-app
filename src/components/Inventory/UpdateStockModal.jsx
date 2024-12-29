@@ -5,12 +5,8 @@ function UpdateStockModal({ show, onClose, item, onUpdateItem, token, baseUrl })
     const [itemStock, setItemStock] = useState("");
     const [isOrdered, setIsOrdered] = useState(false);
 
-    // Ya no necesitamos "headers" ni "fetch" aquí:
-    // const headers = {...};
-
     useEffect(() => {
         if (item) {
-            // Si tiene originalStockInput, lo usamos. Si no, el stock del backend
             setItemStock(item.originalStockInput ?? item.stock.toString());
             setIsOrdered(item.is_ordered === 1);
         }
@@ -33,8 +29,8 @@ function UpdateStockModal({ show, onClose, item, onUpdateItem, token, baseUrl })
 
         if (/^\d+\s+\d+\/\d+$/.test(input)) {
             const [whole, fraction] = input.split(/\s+/);
-            const [numerator, denominator] = fraction.split("/").map(Number);
-            return parseInt(whole, 10) + numerator / denominator;
+            const [num, den] = fraction.split("/").map(Number);
+            return parseInt(whole, 10) + num/den;
         }
 
         return NaN;
@@ -55,28 +51,19 @@ function UpdateStockModal({ show, onClose, item, onUpdateItem, token, baseUrl })
             return;
         }
 
-        // Construimos el objeto con datos actualizados
         const updatedItem = {
             ...item,
             stock: stockValue,
             is_ordered: isOrdered ? 1 : 0,
-            // Mantenemos el formato original ingresado
             originalStockInput: itemStock,
         };
 
-        // minStock no se edita aquí, así que si existe originalMinStockInput lo conservamos
         if (item.originalMinStockInput !== undefined) {
             updatedItem.originalMinStockInput = item.originalMinStockInput;
         }
 
-        // En vez de hacer fetch aquí, delegamos la actualización al padre
+        // Delegamos la actualización al padre
         onUpdateItem(updatedItem);
-
-        // Cerramos el modal
-        onClose();
-    };
-
-    const handleClose = () => {
         onClose();
     };
 
@@ -84,7 +71,7 @@ function UpdateStockModal({ show, onClose, item, onUpdateItem, token, baseUrl })
 
     return (
         <motion.div
-            onClick={handleClose}
+            onClick={onClose}
             className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -100,7 +87,7 @@ function UpdateStockModal({ show, onClose, item, onUpdateItem, token, baseUrl })
                 transition={{ duration: 0.3 }}
             >
                 <button
-                    onClick={handleClose}
+                    onClick={onClose}
                     className="absolute top-4 right-4 text-gray-600 hover:text-gray-900"
                     aria-label="Cerrar modal"
                 >

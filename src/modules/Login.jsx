@@ -1,4 +1,4 @@
-// Login.jsx
+// src/modules/Login.jsx
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -110,7 +110,7 @@ function Login() {
               {/* Ícono de ojo (sólo decorativo si no has implementado toggle show/hide) */}
               <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 576 512">
-                  <path d="M..."></path>
+                  <path d="M..." />
                 </svg>
               </div>
             </div>

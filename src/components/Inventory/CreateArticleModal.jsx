@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+// Importa la librería para convertir HEIC/HEIF a JPG
+import heic2any from 'heic2any';
 
 function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, brands, areas, token, baseUrl }) {
     const [newItemName, setNewItemName] = useState("");
@@ -15,11 +17,9 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
     const [imageFile, setImageFile] = useState(null);
     const [activeTab, setActiveTab] = useState("url");
     const [showConfirmModal, setShowConfirmModal] = useState(false);
-
-    // Para prevenir envíos duplicados
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // (OJO) No hacemos fetch de creación aquí, solo subimos imagen
+    // Función para parsear cantidades fraccionarias o decimales
     const parseFractionalQuantity = (input) => {
         if (typeof input === 'number') return input;
         input = input.trim();
@@ -44,7 +44,7 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
         return NaN;
     };
 
-    // Subir imagen a /upload y obtener la URL
+    // Subir imagen a /upload y obtener la URL desde el backend
     const uploadImageAndGetUrl = async () => {
         if (!imageFile) return "";
 
@@ -55,7 +55,7 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
             const response = await fetch(`${baseUrl}/upload`, {
                 method: "POST",
                 headers: {
-                    Authorization: `Bearer ${token}`
+                    Authorization: `Bearer ${token}`,
                 },
                 body: formData,
             });
@@ -76,12 +76,49 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
         }
     };
 
+    // Maneja la conversión de HEIC/HEIF a JPG en el frontend
+    const handleImageFileChange = async (e) => {
+        const file = e.target.files[0];
+        setNewItemImageUrl("");
+
+        if (!file) {
+            setImageFile(null);
+            return;
+        }
+
+        // Si es un HEIC/HEIF, lo convertimos a JPG usando heic2any
+        if (file.type === "image/heic" || file.type === "image/heif") {
+            try {
+                const convertedBlob = await heic2any({
+                    blob: file,
+                    toType: "image/jpeg",
+                    quality: 0.8, // Ajusta la calidad (rango 0 - 1) a tu gusto
+                });
+
+                // Crea un nuevo File con extensión .jpg
+                const convertedFile = new File(
+                    [convertedBlob],
+                    file.name.replace(/\.(heic|heif)$/i, ".jpg"),
+                    { type: "image/jpeg" }
+                );
+
+                setImageFile(convertedFile);
+            } catch (error) {
+                console.error("Error al convertir HEIC a JPEG:", error);
+                setImageFile(null);
+            }
+        } else {
+            // Si no es HEIC, simplemente guardamos el archivo
+            setImageFile(file);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (isSubmitting) return;
         setIsSubmitting(true);
 
-        // Validar campos
+        // Validar campos obligatorios
         if (
             !newItemName.trim() ||
             !newItemCategoryId ||
@@ -116,7 +153,7 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
             finalImageUrl = uploadedUrl;
         }
 
-        // Construimos el objeto "nuevo artículo" (sin POST)
+        // Construimos el objeto que representará el nuevo artículo
         const newItem = {
             name: newItemName,
             area_id: parseInt(newItemAreaId, 10),
@@ -130,14 +167,14 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
             is_ordered: isOrdered ? 1 : 0,
         };
 
-        // Guardamos la fracción original
+        // Guardamos las fracciones originales, si el usuario puso "1 1/2" o similar
         newItem.originalStockInput = newItemStock.match(/[^0-9\.]/) ? newItemStock : null;
         newItem.originalMinStockInput = newItemMinStock.match(/[^0-9\.]/) ? newItemMinStock : null;
 
-        // Llamamos a la función del padre, que hará la mutación y POST
+        // Llamamos a la función del padre, que hará la mutación y POST al backend
         onAddItem(newItem);
 
-        // Limpiamos y cerramos
+        // Limpiamos y cerramos el modal
         resetForm();
         onClose();
         setIsSubmitting(false);
@@ -175,12 +212,6 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
         } else {
             onClose();
         }
-    };
-
-    const handleImageFileChange = (e) => {
-        const file = e.target.files[0];
-        setImageFile(file);
-        setNewItemImageUrl("");
     };
 
     if (!show) return null;
@@ -241,7 +272,9 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
                                 >
                                     <option value="">Seleccione una categoría</option>
                                     {categories.map((cat) => (
-                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                        <option key={cat.id} value={cat.id}>
+                                            {cat.name}
+                                        </option>
                                     ))}
                                 </select>
 
@@ -253,7 +286,9 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
                                 >
                                     <option value="">Seleccione una marca</option>
                                     {brands.map((b) => (
-                                        <option key={b.id} value={b.id}>{b.name}</option>
+                                        <option key={b.id} value={b.id}>
+                                            {b.name}
+                                        </option>
                                     ))}
                                 </select>
 
@@ -265,7 +300,9 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
                                 >
                                     <option value="">Seleccione un área</option>
                                     {areas.map((a) => (
-                                        <option key={a.id} value={a.id}>{a.name}</option>
+                                        <option key={a.id} value={a.id}>
+                                            {a.name}
+                                        </option>
                                     ))}
                                 </select>
 
@@ -322,7 +359,9 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
                                 >
                                     <option value="">Seleccione un proveedor</option>
                                     {suppliers.map((s) => (
-                                        <option key={s.id} value={s.id}>{s.name}</option>
+                                        <option key={s.id} value={s.id}>
+                                            {s.name}
+                                        </option>
                                     ))}
                                 </select>
 
@@ -382,7 +421,7 @@ function CreateArticleModal({ show, onClose, onAddItem, categories, suppliers, b
                                         <label>Subir Imagen</label>
                                         <input
                                             type="file"
-                                            accept="image/*"
+                                            accept="image/*" // Esto permite HEIC en iOS/Safari
                                             onChange={handleImageFileChange}
                                             className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
                                         />

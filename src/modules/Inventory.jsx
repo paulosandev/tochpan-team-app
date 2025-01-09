@@ -1,3 +1,4 @@
+// Inventory.jsx
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -6,7 +7,16 @@ import CreateArticleModal from '../components/Inventory/CreateArticleModal';
 import { useGlobalData } from '../GlobalDataContext';
 
 function Inventory() {
-    const { token } = useGlobalData();
+    const {
+        token,
+        categories,
+        suppliers,
+        brands,
+        areas,
+        loading: globalLoading,
+        error: globalError,
+    } = useGlobalData();
+
     const baseUrlEnv = import.meta.env.VITE_API_BASE_URL;
     const baseUrl = `${baseUrlEnv}/api`;
     const queryClient = useQueryClient();
@@ -52,31 +62,14 @@ function Inventory() {
     // =======================
     const fetchArticles = async () => {
         const res = await fetch(`${baseUrl}/articles`, { headers });
+        if (!res.ok) {
+            throw new Error('Error al obtener artículos');
+        }
         const data = await res.json();
         return data.map(item => ({
             ...item,
             status: calculateStatus(item.stock, item.min_stock, item.is_ordered),
         }));
-    };
-
-    const fetchCategories = async () => {
-        const res = await fetch(`${baseUrl}/categories`, { headers });
-        return await res.json();
-    };
-
-    const fetchSuppliers = async () => {
-        const res = await fetch(`${baseUrl}/suppliers`, { headers });
-        return await res.json();
-    };
-
-    const fetchBrands = async () => {
-        const res = await fetch(`${baseUrl}/brands`, { headers });
-        return await res.json();
-    };
-
-    const fetchAreas = async () => {
-        const res = await fetch(`${baseUrl}/areas`, { headers });
-        return await res.json();
     };
 
     // =======================
@@ -94,55 +87,8 @@ function Inventory() {
         staleTime: 1000 * 60 * 5, // 5 minutos
     });
 
-    // -- Categorías, Proveedores, Marcas y Áreas sin staleTime (y sin refetch automático) --
-    const {
-        data: categories = [],
-        isLoading: categoriesLoading,
-        isError: categoriesError,
-    } = useQuery({
-        queryKey: ['categories'],
-        queryFn: fetchCategories,
-        // Sin staleTime => por defecto staleTime=0, data se considera “stale” de inmediato
-        // Deshabilitamos refetch automático en foco/reconexión
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: false,
-    });
-
-    const {
-        data: suppliers = [],
-        isLoading: suppliersLoading,
-        isError: suppliersError,
-    } = useQuery({
-        queryKey: ['suppliers'],
-        queryFn: fetchSuppliers,
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: false,
-    });
-
-    const {
-        data: brands = [],
-        isLoading: brandsLoading,
-        isError: brandsError,
-    } = useQuery({
-        queryKey: ['brands'],
-        queryFn: fetchBrands,
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: false,
-    });
-
-    const {
-        data: areas = [],
-        isLoading: areasLoading,
-        isError: areasError,
-    } = useQuery({
-        queryKey: ['areas'],
-        queryFn: fetchAreas,
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: false,
-    });
-
-    const loading = articlesLoading || categoriesLoading || suppliersLoading || brandsLoading || areasLoading;
-    const error = articlesError || categoriesError || suppliersError || brandsError || areasError;
+    const loading = articlesLoading || globalLoading;
+    const error = articlesError || globalError;
 
     const inventoryItems = articlesData || [];
 
@@ -219,7 +165,7 @@ function Inventory() {
 
     // Botón para invalidar todas las queries (refresco manual)
     const handleManualRefresh = () => {
-        queryClient.invalidateQueries();
+        queryClient.invalidateQueries(['articles']);
     };
 
     // =======================

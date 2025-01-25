@@ -1,5 +1,3 @@
-// Inventory.jsx
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -108,9 +106,9 @@ function Inventory() {
 
   const calculateStatus = (stock, minStock, isOrdered) => {
     if (isOrdered) return "Pedido";
-    if (stock >= minStock) return "Suficiente";
-    if (stock >= minStock * 0.15) return "Escaso";
-    return "Agotado";
+    if (stock <= minStock) return "Para pedir";
+    if (stock > minStock && stock < minStock * 1.2) return "Escaso";
+    return "Suficiente";
   };
 
   // ===============================
@@ -582,12 +580,12 @@ function Inventory() {
                 Escaso
               </button>
               <button
-                onClick={() => setStatusFilter("Agotado")}
+                onClick={() => setStatusFilter("Para pedir")}
                 className={`text-sm px-3 py-1 rounded-md bg-red-100 text-red-700 ${
-                  statusFilter === "Agotado" ? "border-2 border-red-600" : ""
+                  statusFilter === "Para pedir" ? "border-2 border-red-600" : ""
                 }`}
               >
-                Agotado
+                Para pedir
               </button>
               <button
                 onClick={() => setStatusFilter("Pedido")}

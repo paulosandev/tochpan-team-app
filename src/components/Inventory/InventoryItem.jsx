@@ -12,7 +12,7 @@ function InventoryItem({ item, onUpdateItem, categories, suppliers, brands, area
     const statusClasses = {
         'Suficiente': "bg-green-100 text-green-700",
         'Escaso': "bg-yellow-100 text-yellow-700",
-        'Para pedir': "bg-red-100 text-red-700",
+        'Para pedir': "bg-red-100 text-red-700 text-xs px-2 whitespace-nowrap", // Añade whitespace-nowrap
         'Pedido': "bg-blue-100 text-blue-700",
     };
 
@@ -53,7 +53,7 @@ function InventoryItem({ item, onUpdateItem, categories, suppliers, brands, area
     return (
         <>
             <li
-                className="bg-white rounded-lg shadow-md p-4 flex items-center justify-between relative cursor-pointer"
+                className="bg-white rounded-lg shadow-md p-4 flex items-center justify-between relative cursor-pointer w-full"
                 onClick={handleItemClick}
             >
                 <div className="flex items-center">
@@ -69,7 +69,7 @@ function InventoryItem({ item, onUpdateItem, categories, suppliers, brands, area
                         </p>
                     </div>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-1">
                     <span
                         className={`text-sm px-2 py-1 rounded-md ${
                             statusClasses[item.status] || "bg-gray-200 text-gray-700"

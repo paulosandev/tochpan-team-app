@@ -319,7 +319,7 @@ function Inventory() {
   }
 
   return (
-    <div className="px-4 pb-24">
+    <div className="px-1 pb-24">
       {/* Botón Scroll to Top */}
       {showScrollTopButton && (
         <motion.button

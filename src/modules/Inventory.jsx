@@ -5,7 +5,7 @@ import InventoryItem from '../components/Inventory/InventoryItem';
 import CreateArticleModal from '../components/Inventory/CreateArticleModal';
 import { useGlobalData } from '../GlobalDataContext';
 
-// <-- 1) HOOK PARA MEDIA QUERIES
+// 1) HOOK PARA MEDIA QUERIES
 function useMediaQuery(query) {
   const [matches, setMatches] = React.useState(false);
 
@@ -25,6 +25,17 @@ function useMediaQuery(query) {
   return matches;
 }
 
+// 2) FUNCIÓN PARA CALCULAR ESTATUS
+function calculateStatus(stock, minStock, isOrdered) {
+  const s = parseFloat(stock);
+  const m = parseFloat(minStock);
+
+  if (isOrdered) return "Pedido";
+  if (s <= m) return "Para pedir";
+  if (s > m && s <= m * 1.2) return "Escaso";
+  return "Suficiente";
+}
+
 function Inventory() {
   const {
     token,
@@ -38,10 +49,10 @@ function Inventory() {
 
   const baseUrlEnv = import.meta.env.VITE_API_BASE_URL;
   const baseUrl = `${baseUrlEnv}/api`;
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
 
   // ===============================
-  // =       Estados (states)      =
+  // =       ESTADOS (STATES)      =
   // ===============================
 
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
@@ -67,22 +78,22 @@ function Inventory() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [showCreateArticleModal, setShowCreateArticleModal] = useState(false);
 
-  // <-- 2) USAR LOS HOOKS PARA DETECTAR BREAKPOINTS
+  // HOOKS PARA DETECTAR BREAKPOINTS
   const isSm = useMediaQuery("(min-width: 640px)");   // sm
   const isXl = useMediaQuery("(min-width: 1280px)"); // xl
 
-  // En base a isSm / isXl definimos cuáles vistas son “posibles”.
+  // Definimos cuáles vistas son “posibles” según el ancho
   let possibleLayouts = ["oneCol"]; // por defecto
 
   if (isSm && !isXl) {
-    // La pantalla es >= sm pero < xl, permitimos 1 y 2 columnas
+    // Pantalla >= sm pero < xl -> permitimos 1 y 2 columnas
     possibleLayouts = ["oneCol", "twoCols"];
   } else if (isXl) {
-    // La pantalla es >= xl, permitimos las 3 opciones
+    // Pantalla >= xl -> permitimos las 3 opciones
     possibleLayouts = ["oneCol", "twoCols", "grid"];
   }
 
-  // Para cabeceras
+  // Para cabeceras fetch
   const headers = {
     Accept: 'application/json',
     Authorization: `Bearer ${token}`,
@@ -90,7 +101,7 @@ function Inventory() {
   };
 
   // ===============================
-  // =       Efectos / Helpers     =
+  // =       EFECTOS / HELPERS     =
   // ===============================
   useEffect(() => {
     const handleScroll = () => {
@@ -104,13 +115,6 @@ function Inventory() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const calculateStatus = (stock, minStock, isOrdered) => {
-    if (isOrdered) return "Pedido";
-    if (stock <= minStock) return "Para pedir";
-    if (stock > minStock && stock < minStock * 1.2) return "Escaso";
-    return "Suficiente";
-  };
-
   // ===============================
   // =          FETCHERS           =
   // ===============================
@@ -120,6 +124,8 @@ function Inventory() {
       throw new Error('Error al obtener artículos');
     }
     const data = await res.json();
+
+    // Aplicamos nuestra lógica local de estatus
     return data.map((item) => ({
       ...item,
       status: calculateStatus(item.stock, item.min_stock, item.is_ordered),
@@ -172,6 +178,8 @@ function Inventory() {
     return res.json();
   };
 
+  const queryClient = useQueryClient();
+
   const createMutation = useMutation({
     mutationFn: createArticle,
     onSuccess: (data) => {
@@ -202,7 +210,7 @@ function Inventory() {
   });
 
   // ===============================
-  // =       Handlers / Funcs      =
+  // =       HANDLERS / FUNCS      =
   // ===============================
   const handleAddItem = (newItem) => {
     createMutation.mutate(newItem);
@@ -294,7 +302,7 @@ function Inventory() {
     });
 
   // ===============================
-  // =         Render UI           =
+  // =         RENDER UI           =
   // ===============================
   if (loading) {
     return (
@@ -480,7 +488,7 @@ function Inventory() {
               <input
                 id="searchTermInput"
                 type="text"
-                placeholder="Ej. 'Leche ', 'Café' ..."
+                placeholder="Ej. 'Leche', 'Café' ..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="border border-gray-300 rounded-md px-2 py-1 shadow-sm w-full"
@@ -622,8 +630,6 @@ function Inventory() {
           {/* Selección de vista (layout) */}
           <div className="flex items-center space-x-2">
             <label className="font-medium text-sm">Vista:</label>
-
-            {/** Mostramos botones sólo según possibleLayouts */}
             {possibleLayouts.includes("oneCol") && (
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -638,7 +644,6 @@ function Inventory() {
                 1 Columna
               </motion.button>
             )}
-
             {possibleLayouts.includes("twoCols") && (
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -653,7 +658,6 @@ function Inventory() {
                 2 Columnas
               </motion.button>
             )}
-
             {possibleLayouts.includes("grid") && (
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -680,8 +684,8 @@ function Inventory() {
               layout === "oneCol"
                 ? "space-y-4" // lista vertical
                 : layout === "twoCols"
-                ? "grid grid-cols-1 sm:grid-cols-2 gap-4" // 2 columnas en sm+
-                : "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4" // 3 columnas en xl+
+                ? "grid grid-cols-1 sm:grid-cols-2 gap-4"
+                : "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"
             }
           `}
         >

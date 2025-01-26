@@ -49,7 +49,7 @@ function Inventory() {
 
   const baseUrlEnv = import.meta.env.VITE_API_BASE_URL;
   const baseUrl = `${baseUrlEnv}/api`;
-  // const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
   // ===============================
   // =       ESTADOS (STATES)      =
@@ -115,6 +115,11 @@ function Inventory() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Cuando cambie el “Buscar por”, forzamos ordenar “A-Z”
+  useEffect(() => {
+    setIsAscending(true);
+  }, [searchField]);
+
   // ===============================
   // =          FETCHERS           =
   // ===============================
@@ -177,8 +182,6 @@ function Inventory() {
     }
     return res.json();
   };
-
-  const queryClient = useQueryClient();
 
   const createMutation = useMutation({
     mutationFn: createArticle,
@@ -249,6 +252,20 @@ function Inventory() {
   // ===============================
   // =      FILTRADO + ORDEN       =
   // ===============================
+
+  // Función auxiliar para obtener el valor a comparar
+  const getSortValue = (item) => {
+    if (searchField === 'category') {
+      return item.category?.name.toLowerCase() || '';
+    } else if (searchField === 'supplier') {
+      return item.supplier?.name.toLowerCase() || '';
+    } else if (searchField === 'area') {
+      return item.area?.name.toLowerCase() || '';
+    } else {
+      return item.name.toLowerCase();
+    }
+  };
+
   const filteredAndSortedItems = inventoryItems
     .filter((item) => {
       const itemName = item.name.toLowerCase();
@@ -294,10 +311,11 @@ function Inventory() {
       );
     })
     .sort((a, b) => {
-      const aName = a.name.toLowerCase();
-      const bName = b.name.toLowerCase();
-      if (aName < bName) return isAscending ? -1 : 1;
-      if (aName > bName) return isAscending ? 1 : -1;
+      const aVal = getSortValue(a);
+      const bVal = getSortValue(b);
+
+      if (aVal < bVal) return isAscending ? -1 : 1;
+      if (aVal > bVal) return isAscending ? 1 : -1;
       return 0;
     });
 
@@ -471,7 +489,10 @@ function Inventory() {
               <select
                 id="searchFieldSelect"
                 value={searchField}
-                onChange={(e) => setSearchField(e.target.value)}
+                onChange={(e) => {
+                  setSearchField(e.target.value);
+                  // Ocurre el setIsAscending(true) en useEffect
+                }}
                 className="border border-gray-300 rounded-md px-2 py-1 shadow-sm"
               >
                 <option value="name">Artículo</option>
@@ -682,7 +703,7 @@ function Inventory() {
           className={`
             ${
               layout === "oneCol"
-                ? "space-y-4" // lista vertical
+                ? "space-y-4"
                 : layout === "twoCols"
                 ? "grid grid-cols-1 sm:grid-cols-2 gap-4"
                 : "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"

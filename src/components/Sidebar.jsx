@@ -38,12 +38,12 @@ export default function Sidebar() {
           Pendientes
         </NavLink>
         <NavLink 
-          to="/menu"
+          to="/recetario"
           className={({isActive}) => 
             `block py-2 px-4 rounded hover:bg-gray-100 ${isActive ? 'bg-gray-200 font-semibold' : ''}`
           }
         >
-          Menú
+          Recetario
         </NavLink>
       </nav>
     </aside>

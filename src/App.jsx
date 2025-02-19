@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import Dashboard from './modules/Dashboard'
 import Inventory from './modules/Inventory'
-import Recetario from './modules/Recetario'
+import Calculadora from './modules/Calculadora'
 import Pendientes from './modules/Pendientes'
-import Menu from './modules/Menu'
+import Recetario from './modules/Recetario'
 import BottomNav from './components/BottomNav'
 
 // importamos los módulos nuevos
@@ -69,7 +69,7 @@ function App() {
             path="/contador-dinero" 
             element={
               <PrivateRoute>
-                <Recetario />
+                <Calculadora />
               </PrivateRoute>
             }
           />
@@ -82,10 +82,10 @@ function App() {
             }
           />
           <Route 
-            path="/menu" 
+            path="/recetario" 
             element={
               <PrivateRoute>
-                <Menu />
+                <Recetario />
               </PrivateRoute>
             }
           />

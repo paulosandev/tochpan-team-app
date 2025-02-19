@@ -46,13 +46,13 @@ export default function BottomNav() {
         </NavLink>
 
         <NavLink 
-          to="/menu" 
+          to="/recetario" 
           className={({ isActive }) => 
             `flex flex-col items-center justify-center text-xs ${isActive ? 'text-blue-600' : 'text-gray-500'}`
           }
         >
           <ClipboardDocumentListIcon className="h-6 w-6 mb-1"/>
-          <span>Menú</span>
+          <span>Recetario</span>
         </NavLink>
       </div>
     </nav>

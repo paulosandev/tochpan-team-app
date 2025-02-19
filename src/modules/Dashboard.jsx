@@ -131,7 +131,7 @@ export default function Dashboard() {
               <p className="text-xs text-gray-500">Administra tus artículos</p>
             </Link>
 
-            {/* Tarjeta módulo: Recetario */}
+            {/* Tarjeta módulo: Calculadora */}
             <Link
               to="/contador-dinero"
               className="bg-white rounded-xl shadow p-4 flex flex-col items-center text-center space-y-2 hover:shadow-lg transition-shadow"
@@ -155,15 +155,15 @@ export default function Dashboard() {
               <p className="text-xs text-gray-500">Gestiona tareas</p>
             </Link>
 
-            {/* Tarjeta módulo: Menú */}
+            {/* Tarjeta módulo: Recetario */}
             <Link
-              to="/menu"
+              to="/recetario"
               className="bg-white rounded-xl shadow p-4 flex flex-col items-center text-center space-y-2 hover:shadow-lg transition-shadow"
             >
               <div className="w-12 h-12 rounded-lg flex items-center justify-center">
                 <img src="https://res.cloudinary.com/dk6mfal8z/image/upload/f_auto,q_auto/v1/tochpan_assets/conejo-cafecito" alt="Menú" />
               </div>
-              <h3 className="text-sm font-semibold text-gray-800">Menú</h3>
+              <h3 className="text-sm font-semibold text-gray-800">Recetario</h3>
               <p className="text-xs text-gray-500">Configura tu menú</p>
             </Link>
           </div>

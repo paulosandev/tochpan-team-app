@@ -133,13 +133,13 @@ export default function Dashboard() {
 
             {/* Tarjeta módulo: Recetario */}
             <Link
-              to="/recetario"
+              to="/contador-dinero"
               className="bg-white rounded-xl shadow p-4 flex flex-col items-center text-center space-y-2 hover:shadow-lg transition-shadow"
             >
               <div className="w-12 h-12 rounded-lg flex items-center justify-center">
-                <img src="https://res.cloudinary.com/dk6mfal8z/image/upload/f_auto,q_auto/v1/tochpan_assets/cocina-cafecito" alt="Recetario" />
+                <img src="https://res.cloudinary.com/dk6mfal8z/image/upload/f_auto,q_auto/v1/tochpan_assets/cocina-cafecito" alt="contador-dinero" />
               </div>
-              <h3 className="text-sm font-semibold text-gray-800">Recetario</h3>
+              <h3 className="text-sm font-semibold text-gray-800">Contador</h3>
               <p className="text-xs text-gray-500">Crea y comparte recetas</p>
             </Link>
 

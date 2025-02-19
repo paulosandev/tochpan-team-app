@@ -22,12 +22,12 @@ export default function Sidebar() {
           Inventario
         </NavLink>
         <NavLink 
-          to="/recetario"
+          to="/contador-dinero"
           className={({isActive}) => 
             `block py-2 px-4 rounded hover:bg-gray-100 ${isActive ? 'bg-gray-200 font-semibold' : ''}`
           }
         >
-          Recetario
+          Contador dinero
         </NavLink>
         <NavLink 
           to="/pendientes"

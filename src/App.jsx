@@ -66,7 +66,7 @@ function App() {
             }
           />
           <Route 
-            path="/recetario" 
+            path="/contador-dinero" 
             element={
               <PrivateRoute>
                 <Recetario />

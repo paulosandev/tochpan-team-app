@@ -26,13 +26,13 @@ export default function BottomNav() {
         </NavLink>
 
         <NavLink 
-          to="/recetario" 
+          to="/contador-dinero" 
           className={({ isActive }) => 
             `flex flex-col items-center justify-center text-xs ${isActive ? 'text-blue-600' : 'text-gray-500'}`
           }
         >
           <BookOpenIcon className="h-6 w-6 mb-1"/>
-          <span>Recetario</span>
+          <span>Calculadora</span>
         </NavLink>
 
         <NavLink 
